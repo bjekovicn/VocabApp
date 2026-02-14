@@ -1,0 +1,129 @@
+<nav class="bg-primary-600 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo -->
+      <div class="flex-shrink-0">
+        <a routerLink="/" class="text-2xl font-bold"> VocabApp </a>
+      </div>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex space-x-4">
+        <a
+          routerLink="/"
+          routerLinkActive="bg-primary-700"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Home
+        </a>
+
+        <a
+          routerLink="/word-lists"
+          routerLinkActive="bg-primary-700"
+          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Liste
+        </a>
+
+        <a
+          routerLink="/words"
+          routerLinkActive="bg-primary-700"
+          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Reči
+        </a>
+
+        <a
+          routerLink="/practice"
+          routerLinkActive="bg-primary-700"
+          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Vežbaj
+        </a>
+
+        <a
+          routerLink="/import"
+          routerLinkActive="bg-primary-700"
+          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Import
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        (click)="toggleMenu()"
+        class="md:hidden p-2 rounded-md hover:bg-primary-700 focus:outline-none"
+      >
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          @if (!isMenuOpen()) {
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            ></path>
+          } @else {
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          }
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    @if (isMenuOpen()) {
+      <div class="md:hidden pb-4 space-y-2">
+        <a
+          routerLink="/"
+          routerLinkActive="bg-primary-700"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMenu()"
+          class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Home
+        </a>
+
+        <a
+          routerLink="/word-lists"
+          routerLinkActive="bg-primary-700"
+          (click)="closeMenu()"
+          class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Liste
+        </a>
+
+        <a
+          routerLink="/words"
+          routerLinkActive="bg-primary-700"
+          (click)="closeMenu()"
+          class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Reči
+        </a>
+
+        <a
+          routerLink="/practice"
+          routerLinkActive="bg-primary-700"
+          (click)="closeMenu()"
+          class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Vežbaj
+        </a>
+
+        <a
+          routerLink="/import"
+          routerLinkActive="bg-primary-700"
+          (click)="closeMenu()"
+          class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Import
+        </a>
+      </div>
+    }
+  </div>
+</nav>

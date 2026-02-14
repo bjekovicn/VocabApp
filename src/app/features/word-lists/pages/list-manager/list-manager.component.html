@@ -1,0 +1,78 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">Liste Reči</h1>
+        <p class="text-gray-600">Organizuj reči u tematske liste</p>
+      </div>
+      <app-custom-button variant="primary" (clicked)="navigateToCreate()">
+        Nova Lista
+      </app-custom-button>
+    </div>
+
+    @if (lists().length === 0) {
+      <app-custom-card>
+        <div class="text-center py-12">
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Nema lista</h3>
+          <p class="text-gray-600 mb-6">Kreiraj prvu listu da počneš da dodaješ reči</p>
+          <app-custom-button variant="primary" (clicked)="navigateToCreate()">
+            Kreiraj Prvu Listu
+          </app-custom-button>
+        </div>
+      </app-custom-card>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (list of lists(); track list.id) {
+          <app-custom-card [hover]="true">
+            <div class="flex flex-col h-full">
+              <div
+                class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded mb-3 inline-block self-start"
+              >
+                {{ list.languagePairDisplay }}
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">{{ list.name }}</h3>
+              <p class="text-gray-600 text-sm mb-4 flex-grow">{{ list.description }}</p>
+              <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                <span class="text-2xl font-bold text-primary-600">{{ list.wordCount }}</span>
+                <span class="text-sm text-gray-500">reči</span>
+              </div>
+              @if (deleteConfirmId() === list.id) {
+                <div class="space-y-2">
+                  <p class="text-sm text-red-600 font-medium">Sigurno želiš da obrišeš?</p>
+                  <div class="flex gap-2">
+                    <app-custom-button
+                      variant="danger"
+                      [fullWidth]="true"
+                      (clicked)="deleteList(list.id)"
+                    >
+                      Da, obriši
+                    </app-custom-button>
+                    <app-custom-button
+                      variant="secondary"
+                      [fullWidth]="true"
+                      (clicked)="cancelDelete()"
+                    >
+                      Otkaži
+                    </app-custom-button>
+                  </div>
+                </div>
+              } @else {
+                <div class="grid grid-cols-3 gap-2">
+                  <app-custom-button variant="secondary" (clicked)="navigateToWords(list.id)">
+                    Reči
+                  </app-custom-button>
+                  <app-custom-button variant="secondary" (clicked)="navigateToEdit(list.id)">
+                    Izmeni
+                  </app-custom-button>
+                  <app-custom-button variant="danger" (clicked)="confirmDelete(list.id)">
+                    Obriši
+                  </app-custom-button>
+                </div>
+              }
+            </div>
+          </app-custom-card>
+        }
+      </div>
+    }
+  </div>
+</div>

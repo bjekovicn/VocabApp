@@ -1,0 +1,68 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ pageTitle() }}</h1>
+      <p class="text-gray-600">Popuni informacije o listi</p>
+    </div>
+
+    <app-custom-card>
+      <div class="space-y-6">
+        <app-custom-input
+          label="Naziv Liste"
+          placeholder="npr. Najvazniji glagoli"
+          [required]="true"
+          [(value)]="name"
+        />
+
+        <app-custom-textarea
+          label="Opis"
+          placeholder="npr. 100 najčešćih glagola za A1 nivo"
+          [rows]="3"
+          [required]="true"
+          [(value)]="description"
+        />
+
+        <div class="grid grid-cols-2 gap-4">
+          <app-custom-select
+            label="Izvorni Jezik"
+            placeholder="Izaberi jezik"
+            [options]="languageOptions()"
+            [(value)]="sourceLanguage"
+          />
+
+          <app-custom-select
+            label="Ciljni Jezik"
+            placeholder="Izaberi jezik"
+            [options]="languageOptions()"
+            [(value)]="targetLanguage"
+          />
+        </div>
+
+        @if (sourceLanguage() && targetLanguage() && sourceLanguage() === targetLanguage()) {
+          <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            Izvorni i ciljni jezik moraju biti različiti
+          </div>
+        }
+
+        <div class="flex gap-4 pt-4">
+          <app-custom-button
+            variant="primary"
+            [fullWidth]="true"
+            [disabled]="!isValid() || isSaving()"
+            (clicked)="handleSubmit()"
+          >
+            {{ isSaving() ? 'Čuvanje...' : isEditMode() ? 'Sačuvaj Izmene' : 'Kreiraj Listu' }}
+          </app-custom-button>
+          <app-custom-button
+            variant="secondary"
+            [fullWidth]="true"
+            [disabled]="isSaving()"
+            (clicked)="handleCancel()"
+          >
+            Otkaži
+          </app-custom-button>
+        </div>
+      </div>
+    </app-custom-card>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<div class="w-full">
+  @if (label()) {
+    <label class="label">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500">*</span>
+      }
+    </label>
+  }
+  <input
+    [type]="type()"
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [required]="required()"
+    (input)="handleInput($event)"
+    (blur)="handleBlur()"
+    class="input"
+  />
+</div>

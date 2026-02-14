@@ -1,0 +1,82 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">Sve Reči</h1>
+        <p class="text-gray-600">Pregled i upravljanje rečima</p>
+      </div>
+      <app-custom-button variant="primary" (clicked)="navigateToAdd()">
+        Dodaj Reč
+      </app-custom-button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <app-custom-select
+        label="Filtriraj po listi"
+        [options]="listOptions()"
+        [(value)]="selectedListId"
+      />
+
+      <app-custom-select
+        label="Filtriraj po kategoriji"
+        [options]="categoryOptions()"
+        [(value)]="selectedCategory"
+      />
+    </div>
+
+    @if (filteredWords().length === 0) {
+      <app-custom-card>
+        <div class="text-center py-12">
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Nema reči</h3>
+          <p class="text-gray-600 mb-6">Dodaj prvu reč da počneš</p>
+          <app-custom-button variant="primary" (clicked)="navigateToAdd()">
+            Dodaj Prvu Reč
+          </app-custom-button>
+        </div>
+      </app-custom-card>
+    } @else {
+      <div class="space-y-4">
+        @for (word of filteredWords(); track word.id) {
+          <app-custom-card [hover]="true">
+            <div class="flex items-center justify-between">
+              <div class="grow">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-xl font-bold text-gray-900">{{ word.sourceText }}</h3>
+                  <span class="text-lg text-gray-600">→</span>
+                  <h3 class="text-xl font-bold text-gray-900">{{ word.targetText }}</h3>
+                </div>
+                <div class="flex gap-4 text-sm text-gray-600">
+                  <span class="bg-gray-100 px-2 py-1 rounded">{{
+                    getCategoryLabel(word.category)
+                  }}</span>
+                  <span class="bg-primary-50 text-primary-700 px-2 py-1 rounded">{{
+                    getListName(word.listId)
+                  }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-2">
+              @if (deleteConfirmId() === word.id) {
+                <div class="flex gap-2">
+                  <app-custom-button variant="danger" (clicked)="deleteWord(word.id)">
+                    Potvrdi
+                  </app-custom-button>
+                  <app-custom-button variant="secondary" (clicked)="cancelDelete()">
+                    Otkaži
+                  </app-custom-button>
+                </div>
+              } @else {
+                <app-custom-button variant="secondary" (clicked)="navigateToEdit(word.id)">
+                  Izmeni
+                </app-custom-button>
+                <app-custom-button variant="danger" (clicked)="confirmDelete(word.id)">
+                  Obriši
+                </app-custom-button>
+              }
+            </div>
+          </app-custom-card>
+        }
+      </div>
+    }
+  </div>
+</div>

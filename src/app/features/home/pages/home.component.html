@@ -1,0 +1,65 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+      <p class="text-gray-600">Dobrodošao nazad! Vreme je za učenje.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <app-custom-card>
+        <div class="text-center">
+          <div class="text-4xl font-bold text-primary-600">{{ dueToday() }}</div>
+          <div class="text-sm text-gray-600 mt-2">Reči za danas</div>
+        </div>
+      </app-custom-card>
+
+      <app-custom-card>
+        <div class="text-center">
+          <div class="text-4xl font-bold text-blue-600">{{ newWords() }}</div>
+          <div class="text-sm text-gray-600 mt-2">Nove reči</div>
+        </div>
+      </app-custom-card>
+
+      <app-custom-card>
+        <div class="text-center">
+          <div class="text-4xl font-bold text-yellow-600">{{ inProgress() }}</div>
+          <div class="text-sm text-gray-600 mt-2">U procesu</div>
+        </div>
+      </app-custom-card>
+
+      <app-custom-card>
+        <div class="text-center">
+          <div class="text-4xl font-bold text-green-600">{{ mastered() }}</div>
+          <div class="text-sm text-gray-600 mt-2">Savladane</div>
+        </div>
+      </app-custom-card>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <app-custom-button variant="primary" [fullWidth]="true" (clicked)="navigateToPractice()">
+        Počni učenje
+      </app-custom-button>
+      <app-custom-button variant="secondary" [fullWidth]="true" (clicked)="navigateToAddWord()">
+        Dodaj reč
+      </app-custom-button>
+      <app-custom-button variant="secondary" [fullWidth]="true" (clicked)="navigateToWordLists()">
+        Upravljaj listama
+      </app-custom-button>
+    </div>
+
+    <app-custom-card class="mb-8">
+      <h2 class="text-2xl font-bold mb-4">Kategorije</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        @for (stat of categoryStats(); track stat.category) {
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="text-sm font-medium text-gray-700 mb-2">{{ stat.label }}</div>
+            <div class="flex justify-between items-center">
+              <span class="text-2xl font-bold text-gray-900">{{ stat.total }}</span>
+              <span class="text-sm text-primary-600">{{ stat.dueToday }} danas</span>
+            </div>
+          </div>
+        }
+      </div>
+    </app-custom-card>
+  </div>
+</div>

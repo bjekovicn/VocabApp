@@ -1,0 +1,20 @@
+<div class="w-full">
+  @if (label()) {
+    <label class="label">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500">*</span>
+      }
+    </label>
+  }
+  <textarea
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [required]="required()"
+    [rows]="rows()"
+    (input)="handleInput($event)"
+    (blur)="handleBlur()"
+    class="input resize-none"
+  ></textarea>
+</div>

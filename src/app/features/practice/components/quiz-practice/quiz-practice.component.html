@@ -1,0 +1,47 @@
+@if (currentWord(); as word) {
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-900">
+        Reč {{ currentIndex() + 1 }} / {{ words().length }}
+      </h1>
+
+      <app-custom-button variant="secondary" (clicked)="finished.emit(results())">
+        Završi
+      </app-custom-button>
+    </div>
+
+    <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+      <div
+        class="bg-primary-600 h-2 rounded-full transition-all"
+        [style.width.%]="progressPercent()"
+      ></div>
+    </div>
+  </div>
+
+  <app-custom-card>
+    <div class="text-center py-8">
+      <div class="text-4xl font-bold text-gray-900 mb-8">
+        {{ questionText() }}
+      </div>
+
+      <div class="space-y-4">
+        @for (option of options(); track option.text) {
+          <button
+            (click)="selectAnswer(option)"
+            [disabled]="selectedAnswer() !== null"
+            class="w-full p-4 text-lg font-medium rounded-lg border-2 transition-all"
+            [class.border-gray-300]="selectedAnswer() === null"
+            [class.bg-white]="selectedAnswer() === null"
+            [class.hover:border-primary-500]="selectedAnswer() === null"
+            [class.border-green-500]="selectedAnswer() === option.text && option.isCorrect"
+            [class.bg-green-50]="selectedAnswer() === option.text && option.isCorrect"
+            [class.border-red-500]="selectedAnswer() === option.text && !option.isCorrect"
+            [class.bg-red-50]="selectedAnswer() === option.text && !option.isCorrect"
+          >
+            {{ option.text }}
+          </button>
+        }
+      </div>
+    </div>
+  </app-custom-card>
+}

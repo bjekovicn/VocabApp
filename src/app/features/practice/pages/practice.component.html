@@ -1,0 +1,113 @@
+<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Setup State -->
+    @if (state() === 'setup') {
+      <div class="mb-10 text-center sm:text-left">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-3">Practice Setup</h1>
+        <p class="text-gray-600 text-lg sm:text-base">Izaberi mod i filtere za vežbanje</p>
+      </div>
+
+      <app-custom-card class="shadow-lg">
+        <div class="p-6 md:p-8 space-y-6">
+          <!-- Mod Vežbanja -->
+          <div class="space-y-1">
+            <app-custom-select
+              label="Mod Vežbanja"
+              [options]="modeOptions()"
+              [(value)]="selectedMode"
+            />
+          </div>
+
+          <!-- Lista -->
+          <div class="space-y-1">
+            <app-custom-select label="Lista" [options]="listOptions()" [(value)]="selectedListId" />
+          </div>
+
+          <!-- Broj reči -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              Reči za danas:
+              <span class="ml-1 font-semibold text-gray-900 text-lg">{{
+                availableWords().length
+              }}</span>
+            </label>
+          </div>
+
+          <!-- Dugme -->
+          <div class="pt-4">
+            <app-custom-button
+              variant="primary"
+              [fullWidth]="true"
+              [disabled]="availableWords().length === 0"
+              (clicked)="startPractice()"
+            >
+              Počni Vežbanje
+            </app-custom-button>
+          </div>
+        </div>
+      </app-custom-card>
+    }
+
+    <!-- Practicing State -->
+    @if (state() === 'practicing') {
+      <div class="mt-6">
+        @if (selectedMode() === 'flip-card') {
+          <app-flip-card-practice
+            [words]="practiceWords()"
+            (finished)="handlePracticeFinished($event)"
+          />
+        }
+
+        @if (selectedMode() === 'quiz-source-target' || selectedMode() === 'quiz-target-source') {
+          <app-quiz-practice
+            [words]="practiceWords()"
+            [mode]="selectedMode()"
+            (finished)="handlePracticeFinished($event)"
+          />
+        }
+      </div>
+    }
+
+    <!-- Results State -->
+    @if (state() === 'results') {
+      <div class="mb-8 text-center sm:text-left">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">Rezultati</h1>
+        <p class="text-gray-600 text-lg sm:text-base">Odličan rad!</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <app-custom-card class="shadow-md">
+          <div class="text-center py-6">
+            <div class="text-4xl font-bold text-gray-900">{{ stats().totalWords }}</div>
+            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">Ukupno reči</div>
+          </div>
+        </app-custom-card>
+
+        <app-custom-card class="shadow-md">
+          <div class="text-center py-6">
+            <div class="text-4xl font-bold text-green-600">{{ stats().correctCount }}</div>
+            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">Tačno</div>
+          </div>
+        </app-custom-card>
+
+        <app-custom-card class="shadow-md">
+          <div class="text-center py-6">
+            <div class="text-4xl font-bold text-primary-600">{{ stats().accuracy }}%</div>
+            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">Tačnost</div>
+          </div>
+        </app-custom-card>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <app-custom-button variant="primary" [fullWidth]="true" (clicked)="restartPractice()">
+          Novo Vežbanje
+        </app-custom-button>
+        <app-custom-button variant="secondary" [fullWidth]="true" (clicked)="goHome()">
+          Nazad
+        </app-custom-button>
+      </div>
+    }
+  </div>
+</div>
