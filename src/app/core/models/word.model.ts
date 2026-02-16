@@ -15,7 +15,8 @@ export interface Word {
   quizDistractorsTargetToSource: string[]; // 2 pogrešne reči
 
   // Odvojen napredak za svaki mod
-  flipCard: SpacedRepetitionProgress;
+  flipCardSourceToTarget: SpacedRepetitionProgress;
+  flipCardTargetToSource: SpacedRepetitionProgress;
   quizSourceToTarget: SpacedRepetitionProgress;
   quizTargetToSource: SpacedRepetitionProgress;
 

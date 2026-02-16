@@ -34,7 +34,8 @@ export class HomePage {
     () =>
       this.words().filter(
         (w) =>
-          w.flipCard.repetitions === 0 &&
+          w.flipCardSourceToTarget.repetitions === 0 &&
+          w.flipCardTargetToSource.repetitions === 0 &&
           w.quizSourceToTarget.repetitions === 0 &&
           w.quizTargetToSource.repetitions === 0,
       ).length,
@@ -44,7 +45,8 @@ export class HomePage {
     () =>
       this.words().filter(
         (w) =>
-          (w.flipCard.repetitions > 0 && w.flipCard.repetitions < 3) ||
+          (w.flipCardSourceToTarget.repetitions > 0 && w.flipCardSourceToTarget.repetitions < 3) ||
+          (w.flipCardTargetToSource.repetitions > 0 && w.flipCardTargetToSource.repetitions < 3) ||
           (w.quizSourceToTarget.repetitions > 0 && w.quizSourceToTarget.repetitions < 3) ||
           (w.quizTargetToSource.repetitions > 0 && w.quizTargetToSource.repetitions < 3),
       ).length,
@@ -54,7 +56,8 @@ export class HomePage {
     () =>
       this.words().filter(
         (w) =>
-          w.flipCard.repetitions >= 3 &&
+          w.flipCardSourceToTarget.repetitions >= 3 &&
+          w.flipCardTargetToSource.repetitions >= 3 &&
           w.quizSourceToTarget.repetitions >= 3 &&
           w.quizTargetToSource.repetitions >= 3,
       ).length,
@@ -63,8 +66,9 @@ export class HomePage {
   public readonly dueToday = computed(() => {
     return this.words().filter(
       (w) =>
-        this.spacedRepetition.isDueForReview(w.flipCard) ||
-        this.spacedRepetition.isDueForReview(w.quizSourceToTarget) ||
+        (w.flipCardSourceToTarget.repetitions === 0 &&
+          w.flipCardTargetToSource.repetitions === 0 &&
+          this.spacedRepetition.isDueForReview(w.quizSourceToTarget)) ||
         this.spacedRepetition.isDueForReview(w.quizTargetToSource),
     ).length;
   });
@@ -78,7 +82,8 @@ export class HomePage {
       dueToday: words.filter(
         (w) =>
           w.category === cat.value &&
-          (this.spacedRepetition.isDueForReview(w.flipCard) ||
+          (this.spacedRepetition.isDueForReview(w.flipCardSourceToTarget) ||
+            this.spacedRepetition.isDueForReview(w.flipCardTargetToSource) ||
             this.spacedRepetition.isDueForReview(w.quizSourceToTarget) ||
             this.spacedRepetition.isDueForReview(w.quizTargetToSource)),
       ).length,

@@ -39,12 +39,12 @@ export class PracticeComponent {
   private readonly wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
 
   public readonly state = signal<PracticeState>('setup');
-  public readonly selectedMode = signal<PracticeMode>('flip-card');
-  public readonly selectedListId = signal<string | null>(null);
+  public readonly selectedMode = signal<PracticeMode>('flip-card-source-target');
   public readonly selectedCategories = signal<WordCategory[]>([]);
 
   public readonly practiceWords = signal<Word[]>([]);
   public readonly sessionResults = signal<PracticeResult[]>([]);
+  public readonly selectedListId = signal<string | null>(null);
 
   public readonly modeOptions = signal<SelectOption[]>(
     PRACTICE_MODES.map((mode) => ({ value: mode.value, label: mode.label })),
@@ -101,13 +101,19 @@ export class PracticeComponent {
       return;
     }
 
-    this.practiceWords.set(words);
+    const shuffledWords = this.shuffleArray([...words]);
+
+    this.practiceWords.set(shuffledWords);
     this.sessionResults.set([]);
     this.state.set('practicing');
   }
 
-  public handlePracticeFinished(results: PracticeResult[]): void {
+  public async handlePracticeFinished(results: PracticeResult[]): Promise<void> {
     this.sessionResults.set(results);
+
+    // Batch update progress for all words
+    await this.batchUpdateProgress(results);
+
     this.state.set('results');
   }
 
@@ -120,12 +126,54 @@ export class PracticeComponent {
     this.router.navigate(['/']);
   }
 
+  private async batchUpdateProgress(results: PracticeResult[]): Promise<void> {
+    const mode = this.selectedMode();
+    const progressKey = this.getProgressKey(mode);
+
+    const updates = results.map((result) => {
+      const currentProgress = result.word[progressKey];
+      const newProgress = this.spacedRepetition.calculateNextReview(
+        currentProgress,
+        result.correct,
+      );
+
+      return {
+        id: result.word.id,
+        data: {
+          [progressKey]: newProgress,
+        } as Partial<Word>,
+      };
+    });
+
+    try {
+      await this.storage.batchUpdateWords(updates);
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      alert('Greška pri čuvanju napretka');
+    }
+  }
+
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   private getProgressKey(
     mode: PracticeMode,
-  ): 'flipCard' | 'quizSourceToTarget' | 'quizTargetToSource' {
+  ):
+    | 'flipCardSourceToTarget'
+    | 'flipCardTargetToSource'
+    | 'quizSourceToTarget'
+    | 'quizTargetToSource' {
     switch (mode) {
-      case 'flip-card':
-        return 'flipCard';
+      case 'flip-card-source-target':
+        return 'flipCardSourceToTarget';
+      case 'flip-card-target-source':
+        return 'flipCardTargetToSource';
       case 'quiz-source-target':
         return 'quizSourceToTarget';
       case 'quiz-target-source':

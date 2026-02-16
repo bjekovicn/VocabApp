@@ -51,9 +51,13 @@
     <!-- Practicing State -->
     @if (state() === 'practicing') {
       <div class="mt-6">
-        @if (selectedMode() === 'flip-card') {
+        @if (
+          selectedMode() === 'flip-card-source-target' ||
+          selectedMode() === 'flip-card-target-source'
+        ) {
           <app-flip-card-practice
             [words]="practiceWords()"
+            [mode]="selectedMode()"
             (finished)="handlePracticeFinished($event)"
           />
         }

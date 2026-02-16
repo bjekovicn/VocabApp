@@ -1,9 +1,10 @@
 @if (hasWords()) {
-  <div class="mb-8">
-    <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-900">
+  <div class="mb-6 sm:mb-8 px-2 sm:px-0">
+    <div class="flex justify-between items-center gap-4 flex-wrap">
+      <h1 class="text-lg sm:text-2xl font-bold text-gray-900">
         Reč {{ currentIndex() + 1 }} / {{ words().length }}
       </h1>
+
       <app-custom-button variant="secondary" (clicked)="finished.emit(results())">
         Završi
       </app-custom-button>
@@ -19,20 +20,25 @@
 
   @if (currentWord(); as word) {
     <app-custom-card>
-      <div class="text-center py-12">
+      <div class="text-center py-8 sm:py-12 px-4">
         @if (!isFlipped()) {
-          <div class="cursor-pointer" (click)="flipCard()">
-            <div class="text-5xl font-bold text-gray-900 mb-4">
-              {{ word.sourceText }}
+          <div class="cursor-pointer select-none" (click)="flipCard()">
+            <div
+              class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 wrap-break-word leading-tight"
+            >
+              {{ questionText() }}
             </div>
-            <p class="text-gray-500">Klikni da okreneš</p>
+
+            <p class="text-gray-500 text-sm sm:text-base">Klikni da okreneš</p>
           </div>
         } @else {
-          <div class="text-5xl font-bold text-primary-600 mb-4">
-            {{ word.targetText }}
+          <div
+            class="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-600 mb-6 wrap-break-word leading-tight"
+          >
+            {{ answerText() }}
           </div>
 
-          <div class="flex gap-4 justify-center mt-8">
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-6 sm:mt-8">
             <app-custom-button variant="danger" (clicked)="handleAnswer(false)">
               Ne znam
             </app-custom-button>

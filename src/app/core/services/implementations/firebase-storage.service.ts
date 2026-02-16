@@ -12,6 +12,7 @@ import {
   where,
   Timestamp,
   onSnapshot,
+  writeBatch,
 } from 'firebase/firestore';
 import { getAuth, Auth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { Observable } from 'rxjs';
@@ -138,21 +139,6 @@ export class FirebaseStorageService extends StorageService {
     });
   }
 
-  public async deleteWordList(id: string): Promise<void> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    // Delete all words in this list first
-    const words = await this.getWordsSnapshot(id);
-    const deletePromises = words.map((word) => this.deleteWord(word.id));
-    await Promise.all(deletePromises);
-
-    // Delete the list
-    const listRef = doc(this.firestore, `users/${this.currentUserId}/wordLists/${id}`);
-    await deleteDoc(listRef);
-  }
-
   // Words Methods
   public getWords(): Observable<Word[]> {
     return new Observable((observer) => {
@@ -243,7 +229,8 @@ export class FirebaseStorageService extends StorageService {
       languagePair: dto.languagePair,
       quizDistractorsSourceToTarget: dto.quizDistractorsSourceToTarget,
       quizDistractorsTargetToSource: dto.quizDistractorsTargetToSource,
-      flipCard: this.progressToFirestore(defaultProgress),
+      flipCardSourceToTarget: this.progressToFirestore(defaultProgress),
+      flipCardTargetToSource: this.progressToFirestore(defaultProgress),
       quizSourceToTarget: this.progressToFirestore(defaultProgress),
       quizTargetToSource: this.progressToFirestore(defaultProgress),
       createdAt: now,
@@ -262,8 +249,11 @@ export class FirebaseStorageService extends StorageService {
     const updateData: any = { ...updates, updatedAt: Timestamp.now() };
 
     // Convert progress objects to Firestore format
-    if (updates.flipCard) {
-      updateData.flipCard = this.progressToFirestore(updates.flipCard);
+    if (updates.flipCardSourceToTarget) {
+      updateData.flipCardSourceToTarget = this.progressToFirestore(updates.flipCardSourceToTarget);
+    }
+    if (updates.flipCardTargetToSource) {
+      updateData.flipCardTargetToSource = this.progressToFirestore(updates.flipCardTargetToSource);
     }
     if (updates.quizSourceToTarget) {
       updateData.quizSourceToTarget = this.progressToFirestore(updates.quizSourceToTarget);
@@ -295,7 +285,12 @@ export class FirebaseStorageService extends StorageService {
       languagePair: data['languagePair'],
       quizDistractorsSourceToTarget: data['quizDistractorsSourceToTarget'] || [],
       quizDistractorsTargetToSource: data['quizDistractorsTargetToSource'] || [],
-      flipCard: this.firestoreToProgress(data['flipCard']),
+      flipCardSourceToTarget: this.firestoreToProgress(
+        data['flipCardSourceToTarget'] || data['flipCard'],
+      ),
+      flipCardTargetToSource: this.firestoreToProgress(
+        data['flipCardTargetToSource'] || data['flipCard'],
+      ),
       quizSourceToTarget: this.firestoreToProgress(data['quizSourceToTarget']),
       quizTargetToSource: this.firestoreToProgress(data['quizTargetToSource']),
       createdAt: data['createdAt']?.toDate() || new Date(),
@@ -344,5 +339,122 @@ export class FirebaseStorageService extends StorageService {
         (error) => reject(error),
       );
     });
+  }
+
+  public async batchUpdateWords(
+    updates: Array<{ id: string; data: Partial<Word> }>,
+  ): Promise<void> {
+    if (!this.currentUserId) {
+      throw new Error('User not authenticated');
+    }
+
+    if (updates.length === 0) return;
+
+    // Firestore batch može max 500 operacija
+    const BATCH_SIZE = 500;
+    const batches: any[] = [];
+
+    for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+      const batch = writeBatch(this.firestore);
+      const chunk = updates.slice(i, i + BATCH_SIZE);
+
+      chunk.forEach(({ id, data }) => {
+        const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${id}`);
+        const updateData: any = { ...data, updatedAt: Timestamp.now() };
+
+        // Convert progress objects to Firestore format
+        if (data.flipCardSourceToTarget) {
+          updateData.flipCardSourceToTarget = this.progressToFirestore(data.flipCardSourceToTarget);
+        }
+        if (data.flipCardTargetToSource) {
+          updateData.flipCardTargetToSource = this.progressToFirestore(data.flipCardTargetToSource);
+        }
+        if (data.quizSourceToTarget) {
+          updateData.quizSourceToTarget = this.progressToFirestore(data.quizSourceToTarget);
+        }
+        if (data.quizTargetToSource) {
+          updateData.quizTargetToSource = this.progressToFirestore(data.quizTargetToSource);
+        }
+
+        batch.update(wordRef, updateData);
+      });
+
+      batches.push(batch.commit());
+    }
+
+    await Promise.all(batches);
+  }
+
+  public async batchCreateWords(dtos: CreateWordDto[]): Promise<string[]> {
+    if (!this.currentUserId) {
+      throw new Error('User not authenticated');
+    }
+
+    if (dtos.length === 0) return [];
+
+    const BATCH_SIZE = 500;
+    const createdIds: string[] = [];
+
+    for (let i = 0; i < dtos.length; i += BATCH_SIZE) {
+      const batch = writeBatch(this.firestore);
+      const chunk = dtos.slice(i, i + BATCH_SIZE);
+
+      chunk.forEach((dto) => {
+        const wordsRef = collection(this.firestore, `users/${this.currentUserId}/words`);
+        const newDocRef = doc(wordsRef);
+        const now = Timestamp.now();
+        const defaultProgress = createDefaultProgress();
+
+        batch.set(newDocRef, {
+          sourceText: dto.sourceText,
+          targetText: dto.targetText,
+          category: dto.category,
+          listId: dto.listId,
+          languagePair: dto.languagePair,
+          quizDistractorsSourceToTarget: dto.quizDistractorsSourceToTarget,
+          quizDistractorsTargetToSource: dto.quizDistractorsTargetToSource,
+          flipCardSourceToTarget: this.progressToFirestore(defaultProgress),
+          flipCardTargetToSource: this.progressToFirestore(defaultProgress),
+          quizSourceToTarget: this.progressToFirestore(defaultProgress),
+          quizTargetToSource: this.progressToFirestore(defaultProgress),
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        createdIds.push(newDocRef.id);
+      });
+
+      await batch.commit();
+    }
+
+    return createdIds;
+  }
+
+  public async deleteWordListWithWords(listId: string): Promise<void> {
+    if (!this.currentUserId) {
+      throw new Error('User not authenticated');
+    }
+
+    // Get all words for this list
+    const words = await this.getWordsSnapshot(listId);
+
+    // Create batch for deletion
+    const BATCH_SIZE = 500;
+
+    for (let i = 0; i < words.length; i += BATCH_SIZE) {
+      const batch = writeBatch(this.firestore);
+      const chunk = words.slice(i, i + BATCH_SIZE);
+
+      chunk.forEach((word) => {
+        const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${word.id}`);
+        batch.delete(wordRef);
+      });
+
+      await batch.commit();
+    }
+
+    // Delete the list itself
+    const listRef = doc(this.firestore, `users/${this.currentUserId}/wordLists/${listId}`);
+    await deleteDoc(listRef);
   }
 }

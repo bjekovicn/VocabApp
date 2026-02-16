@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { StorageService } from '@core/services/abstractions/storage.service';
-import { WordList } from '@core/models/word-list.model';
 import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
@@ -56,7 +55,7 @@ export class ListManagerPage {
 
   public async deleteList(id: string): Promise<void> {
     try {
-      await this.storage.deleteWordList(id);
+      await this.storage.deleteWordListWithWords(id);
       this.deleteConfirmId.set(null);
     } catch (error) {
       console.error('Error deleting list:', error);

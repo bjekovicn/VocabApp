@@ -2,8 +2,6 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { Word } from '@core/models/word.model';
 import { PracticeMode } from '@core/models/practice-mode.model';
-import { StorageService } from '@core/services/abstractions/storage.service';
-import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { PracticeResult } from '@core/models/practice-session.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
@@ -20,8 +18,7 @@ interface QuizOption {
   templateUrl: './quiz-practice.component.html',
 })
 export class QuizPracticeComponent {
-  private readonly storage = inject(StorageService);
-  private readonly spacedRepetition = inject(SpacedRepetitionService);
+  // ✅ UKLONJEN storage i spacedRepetition inject - više ne updateujemo odmah!
 
   public readonly words = input.required<Word[]>();
   public readonly mode = input.required<PracticeMode>();
@@ -85,8 +82,6 @@ export class QuizPracticeComponent {
       { word, correct: option.isCorrect, selectedAnswer: option.text },
     ]);
 
-    this.updateProgress(word, option.isCorrect);
-
     setTimeout(() => {
       const nextIdx = this.currentIndex() + 1;
       const total = this.words()?.length ?? 0;
@@ -98,18 +93,6 @@ export class QuizPracticeComponent {
         this.selectedAnswer.set(null);
       }
     }, 800);
-  }
-
-  private async updateProgress(word: Word, correct: boolean): Promise<void> {
-    const progressKey =
-      this.mode() === 'quiz-source-target' ? 'quizSourceToTarget' : 'quizTargetToSource';
-
-    const currentProgress = word[progressKey];
-    const newProgress = this.spacedRepetition.calculateNextReview(currentProgress, correct);
-
-    await this.storage.updateWord(word.id, {
-      [progressKey]: newProgress,
-    });
   }
 
   private shuffleArray<T>(array: T[]): T[] {

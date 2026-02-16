@@ -11,7 +11,6 @@ export abstract class StorageService {
   public abstract getWordListById(id: string): Observable<WordList | null>;
   public abstract createWordList(dto: CreateWordListDto): Promise<string>;
   public abstract updateWordList(id: string, updates: Partial<WordList>): Promise<void>;
-  public abstract deleteWordList(id: string): Promise<void>;
 
   // Words
   public abstract getWords(): Observable<Word[]>;
@@ -20,4 +19,11 @@ export abstract class StorageService {
   public abstract createWord(dto: CreateWordDto): Promise<string>;
   public abstract updateWord(id: string, updates: Partial<Word>): Promise<void>;
   public abstract deleteWord(id: string): Promise<void>;
+
+  // BATCH OPERATIONS (PERFORMANCE OPTIMIZATIONS)
+  public abstract batchUpdateWords(
+    updates: Array<{ id: string; data: Partial<Word> }>,
+  ): Promise<void>;
+  public abstract batchCreateWords(dtos: CreateWordDto[]): Promise<string[]>;
+  public abstract deleteWordListWithWords(listId: string): Promise<void>;
 }

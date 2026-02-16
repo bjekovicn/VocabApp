@@ -52,7 +52,7 @@ export class ImportComponent {
   // AI FULL PROMPT (JSON + CATEGORY ENUM)
   public readonly aiFullPrompt = `Generiši JSON u sledećem formatu.
 
-⚠ DOZVOLJENE category vrednosti (koristi ISKLJUČIVO jednu od ovih):
+DOZVOLJENE category vrednosti (koristi ISKLJUČIVO jednu od ovih):
 - "noun"
 - "verb"
 - "adjective"
@@ -84,8 +84,7 @@ Format mora biti OVAKAV:
 }
 
 Jezik: nemački → srpski
-Tema: ?
-`;
+Tema: ?`;
 
   // FILE SELECT
   public handleFileSelect(event: Event): void {
@@ -98,7 +97,6 @@ Tema: ?
     }
   }
 
-  // IMPORT
   public async handleImport(): Promise<void> {
     const listId = this.selectedListId();
     if (!listId) return;
@@ -134,7 +132,7 @@ Tema: ?
 
       const dtos = this.importService.convertToCreateDtos(data, listId, wordList.languagePair);
 
-      await Promise.all(dtos.map((dto) => this.storage.createWord(dto)));
+      await this.storage.batchCreateWords(dtos);
 
       this.successCount.set(dtos.length);
 

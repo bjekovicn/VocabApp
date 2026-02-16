@@ -20,8 +20,7 @@ export class CustomCardComponent {
     const baseClasses = 'bg-white rounded-xl shadow-sm border border-gray-200';
     const paddingClass = paddingClasses[this.padding()];
     const hoverClass = this.hover() ? 'hover:shadow-md transition-shadow cursor-pointer' : '';
-    const marginaClasses = 'my-2';
 
-    return `${marginaClasses} ${baseClasses} ${paddingClass} ${hoverClass}`.trim();
+    return `${baseClasses} ${paddingClass} ${hoverClass}`.trim();
   }
 }

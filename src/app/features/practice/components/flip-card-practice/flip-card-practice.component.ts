@@ -1,11 +1,10 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Word } from '@core/models/word.model';
-import { StorageService } from '@core/services/abstractions/storage.service';
-import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { PracticeResult } from '@core/models/practice-session.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
+import { PracticeMode } from '@core/models/practice-mode.model';
 
 @Component({
   selector: 'app-flip-card-practice',
@@ -14,10 +13,8 @@ import { CustomButtonComponent } from '@shared/button/custom-button';
   templateUrl: './flip-card-practice.component.html',
 })
 export class FlipCardPracticeComponent {
-  private readonly storage = inject(StorageService);
-  private readonly spacedRepetition = inject(SpacedRepetitionService);
-
   public readonly words = input.required<Word[]>();
+  public readonly mode = input.required<PracticeMode>();
   public readonly finished = output<PracticeResult[]>();
 
   public readonly currentIndex = signal(0);
@@ -50,9 +47,6 @@ export class FlipCardPracticeComponent {
 
     this.results.update((r) => [...r, { word, correct }]);
 
-    this.updateProgress(word, correct);
-
-    // reset flip odmah
     this.isFlipped.set(false);
 
     setTimeout(() => {
@@ -67,12 +61,19 @@ export class FlipCardPracticeComponent {
     }, 0);
   }
 
-  private async updateProgress(word: Word, correct: boolean): Promise<void> {
-    const currentProgress = word.flipCard;
-    const newProgress = this.spacedRepetition.calculateNextReview(currentProgress, correct);
+  public readonly questionText = computed(() => {
+    const word = this.currentWord();
+    if (!word) return '';
 
-    await this.storage.updateWord(word.id, {
-      flipCard: newProgress,
-    });
-  }
+    const isSourceToTarget = this.mode() === 'flip-card-source-target';
+    return isSourceToTarget ? word.sourceText : word.targetText;
+  });
+
+  public readonly answerText = computed(() => {
+    const word = this.currentWord();
+    if (!word) return '';
+
+    const isSourceToTarget = this.mode() === 'flip-card-source-target';
+    return isSourceToTarget ? word.targetText : word.sourceText;
+  });
 }
