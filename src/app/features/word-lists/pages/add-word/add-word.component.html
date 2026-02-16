@@ -1,100 +1,136 @@
 <div class="min-h-screen bg-gray-50 p-6">
-  <div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ pageTitle() }}</h1>
-      <p class="text-gray-600">Unesi reč i njene karakteristike</p>
+  <div class="max-w-3xl mx-auto space-y-6">
+    <!-- Header -->
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">{{ pageTitle() }}</h1>
+      <p class="text-gray-600">Dodaj reč i kviz opcije</p>
     </div>
 
     <app-custom-card>
-      <div class="space-y-6">
-        <div class="grid grid-cols-2 gap-4">
-          <app-custom-select
-            label="Lista"
-            placeholder="Izaberi listu"
-            [options]="listOptions()"
-            [required]="true"
-            [(value)]="listId"
-          />
+      <div class="flex flex-col space-y-3">
+        <!-- Lista + Kategorija -->
 
-          <app-custom-select
-            label="Kategorija"
-            placeholder="Izaberi kategoriju"
-            [options]="categoryOptions()"
-            [required]="true"
-            [(value)]="category"
-          />
-        </div>
+        <app-custom-select
+          label="Lista"
+          placeholder="Izaberi listu"
+          [options]="listOptions()"
+          [value]="listId()"
+          (valueChange)="setList($event)"
+        />
+        <app-custom-select
+          label="Kategorija"
+          placeholder="Izaberi kategoriju"
+          [options]="categoryOptions()"
+          [value]="category() ?? ''"
+          (valueChange)="setCategory($event)"
+        />
 
-        <div class="grid grid-cols-2 gap-4">
-          <app-custom-input
-            label="Izvorni Tekst"
-            placeholder="npr. der Tisch"
-            [required]="true"
-            [(value)]="sourceText"
-          />
-
-          <app-custom-input
-            label="Prevod"
-            placeholder="npr. sto"
-            [required]="true"
-            [(value)]="targetText"
-          />
-        </div>
-
-        <div class="border-t border-gray-200 pt-6">
-          <h3 class="text-lg font-semibold mb-4">Quiz Opcije</h3>
-
-          <div class="mb-4">
-            <label class="label">Pogrešni prevodi</label>
-            <div class="grid grid-cols-2 gap-4">
-              <app-custom-input
-                placeholder="Pogrešan prevod 1"
-                [required]="true"
-                [(value)]="distractor1Target"
-              />
-              <app-custom-input
-                placeholder="Pogrešan prevod 2"
-                [required]="true"
-                [(value)]="distractor2Target"
-              />
-            </div>
+        <!-- Sadržaj: vidljivo tek kad je lista selektovana -->
+        @if (languageLabels(); as langs) {
+          <!-- Izvorna reč + Prevod -->
+          <div class="grid grid-cols-2 gap-4">
+            <app-custom-input
+              [label]="langs.source"
+              placeholder="Reč"
+              [value]="sourceText()"
+              (valueChange)="sourceText.set($event)"
+            />
+            <app-custom-input
+              [label]="langs.target"
+              placeholder="Prevod"
+              [value]="targetText()"
+              (valueChange)="targetText.set($event)"
+            />
           </div>
 
-          <div>
-            <label class="label">Pogrešne reči</label>
-            <div class="grid grid-cols-2 gap-4">
+          <!-- Quiz sekcija -->
+          <div class="border-t pt-6 space-y-5">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              Pogrešni odgovori za kviz
+            </h3>
+
+            <!-- Source → Target -->
+            <div class="p-4 flex flex-col bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+              <label class="block text-sm font-medium text-gray-700">
+                {{ langs.source }}
+              </label>
+
               <app-custom-input
                 placeholder="Pogrešna reč 1"
-                [required]="true"
-                [(value)]="distractor1Source"
+                [value]="quiz().sourceToTarget[0]"
+                (valueChange)="updateQuiz('sourceToTarget', 0, $event)"
               />
               <app-custom-input
                 placeholder="Pogrešna reč 2"
-                [required]="true"
-                [(value)]="distractor2Source"
+                [value]="quiz().sourceToTarget[1]"
+                (valueChange)="updateQuiz('sourceToTarget', 1, $event)"
+              />
+            </div>
+
+            <!-- Target → Source -->
+            <div class="p-4 flex flex-col bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+              <label class="block text-sm font-medium text-gray-700">
+                {{ langs.target }}
+              </label>
+
+              <app-custom-input
+                placeholder="Pogrešan prevod 1"
+                [value]="quiz().targetToSource[0]"
+                (valueChange)="updateQuiz('targetToSource', 0, $event)"
+              />
+              <app-custom-input
+                placeholder="Pogrešan prevod 2"
+                [value]="quiz().targetToSource[1]"
+                (valueChange)="updateQuiz('targetToSource', 1, $event)"
               />
             </div>
           </div>
-        </div>
 
-        <div class="flex gap-4 pt-4">
-          <app-custom-button
-            variant="primary"
-            [fullWidth]="true"
-            [disabled]="!isValid() || isSaving()"
-            (clicked)="handleSubmit()"
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Beleška (opciono)</label>
+            <textarea
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+              rows="3"
+              placeholder="Šta te asocira na ovu reč..."
+              [value]="note()"
+              (input)="note.set($any($event.target).value)"
+            ></textarea>
+          </div>
+
+          <!-- Dugmad -->
+          <div class="flex gap-4 pt-2">
+            <app-custom-button
+              variant="primary"
+              [fullWidth]="true"
+              [disabled]="!isValid() || isSaving()"
+              (clicked)="handleSubmit()"
+            >
+              {{ isSaving() ? 'Čuvanje...' : isEditMode() ? 'Sačuvaj izmene' : 'Dodaj reč' }}
+            </app-custom-button>
+            <app-custom-button
+              variant="secondary"
+              [fullWidth]="true"
+              [disabled]="isSaving()"
+              (clicked)="handleCancel()"
+            >
+              Otkaži
+            </app-custom-button>
+          </div>
+        } @else {
+          <!-- Placeholder dok lista nije selektovana -->
+          <div
+            class="flex flex-col items-center justify-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl"
           >
-            {{ isSaving() ? 'Čuvanje...' : isEditMode() ? 'Sačuvaj Izmene' : 'Dodaj Reč' }}
-          </app-custom-button>
-          <app-custom-button
-            variant="secondary"
-            [fullWidth]="true"
-            [disabled]="isSaving()"
-            (clicked)="handleCancel()"
-          >
-            Otkaži
-          </app-custom-button>
-        </div>
+            <span class="text-3xl mb-2">📋</span>
+            <p class="text-sm">Izaberi listu da bi uneo reč</p>
+          </div>
+
+          <div class="flex justify-end">
+            <app-custom-button variant="secondary" (clicked)="handleCancel()">
+              Otkaži
+            </app-custom-button>
+          </div>
+        }
       </div>
     </app-custom-card>
   </div>

@@ -3,8 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
+
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { WORD_CATEGORIES, WordCategory } from '@core/models/word-category.model';
+import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
+import { CreateWordDto } from '@core/models/word.model';
+
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomInputComponent } from '@shared/input/custom-input';
@@ -24,99 +28,127 @@ import { SelectOption } from '@shared/select/custom-select.types';
   templateUrl: './add-word.component.html',
 })
 export class AddWordComponent {
-  private readonly storage = inject(StorageService);
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
+  private storage = inject(StorageService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
-  private readonly wordId = toSignal(this.route.paramMap.pipe(map((params) => params.get('id'))), {
+  // ===== ROUTE =====
+  private wordId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))), {
     initialValue: null,
   });
 
-  private readonly wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
+  private wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
 
-  public readonly isEditMode = computed(() => this.wordId() !== null);
-  public readonly pageTitle = computed(() => (this.isEditMode() ? 'Izmeni Reč' : 'Dodaj Novu Reč'));
+  // ===== STATE =====
+  sourceText = signal('');
+  targetText = signal('');
+  category = signal<WordCategory | null>(null);
+  listId = signal('');
+  public readonly note = signal('');
 
-  public readonly sourceText = signal('');
-  public readonly targetText = signal('');
-  public readonly category = signal<WordCategory | ''>('');
-  public readonly listId = signal('');
-  public readonly distractor1Source = signal('');
-  public readonly distractor2Source = signal('');
-  public readonly distractor1Target = signal('');
-  public readonly distractor2Target = signal('');
+  quiz = signal({
+    sourceToTarget: ['', ''],
+    targetToSource: ['', ''],
+  });
 
-  public readonly categoryOptions = signal<SelectOption[]>(
-    WORD_CATEGORIES.map((cat) => ({
-      value: cat.value,
-      label: cat.label,
-    })),
+  isSaving = signal(false);
+
+  // ===== COMPUTED =====
+  isEditMode = computed(() => this.wordId() !== null);
+
+  pageTitle = computed(() => (this.isEditMode() ? 'Izmeni reč' : 'Dodaj novu reč'));
+
+  categoryOptions = signal<SelectOption[]>(
+    WORD_CATEGORIES.map((c) => ({ value: c.value, label: c.label })),
   );
 
-  public readonly listOptions = computed(() =>
-    this.wordLists().map((list) => ({
-      value: list.id,
-      label: `${list.name} (${list.languagePair})`,
-    })),
+  listOptions = computed(() =>
+    this.wordLists()
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((list) => ({ value: list.id, label: list.name })),
   );
 
-  public readonly isValid = computed(
-    () =>
-      this.sourceText().trim() !== '' &&
-      this.targetText().trim() !== '' &&
-      this.category() !== '' &&
-      this.listId() !== '' &&
-      this.distractor1Source().trim() !== '' &&
-      this.distractor2Source().trim() !== '' &&
-      this.distractor1Target().trim() !== '' &&
-      this.distractor2Target().trim() !== '',
-  );
+  selectedList = computed(() => this.wordLists().find((l) => l.id === this.listId()) ?? null);
 
-  public readonly isSaving = signal(false);
+  languageLabels = computed(() => {
+    const list = this.selectedList();
+    if (!list) return null;
+
+    const [sourceCode, targetCode] = list.languagePair.split('-');
+    const sourceLang = SUPPORTED_LANGUAGES.find((l) => l.code === sourceCode);
+    const targetLang = SUPPORTED_LANGUAGES.find((l) => l.code === targetCode);
+
+    return {
+      source: sourceLang ? `${sourceLang.flag} ${sourceLang.name}` : sourceCode.toUpperCase(),
+      target: targetLang ? `${targetLang.flag} ${targetLang.name}` : targetCode.toUpperCase(),
+    };
+  });
+
+  isValid = computed(() => {
+    const q = this.quiz();
+    return !!(
+      this.sourceText().trim() &&
+      this.targetText().trim() &&
+      this.category() &&
+      this.listId() &&
+      q.sourceToTarget.every((v) => v.trim()) &&
+      q.targetToSource.every((v) => v.trim())
+    );
+  });
 
   constructor() {
     effect(() => {
       const id = this.wordId();
-      if (id) {
-        this.loadWord(id);
-      }
+      if (id) this.loadWord(id);
     });
   }
 
-  private loadWord(id: string): void {
+  // ===== LOAD WORD =====
+  private loadWord(id: string) {
     this.storage.getWordById(id).subscribe((word) => {
-      if (word) {
-        this.sourceText.set(word.sourceText);
-        this.targetText.set(word.targetText);
-        this.category.set(word.category);
-        this.listId.set(word.listId);
-        this.distractor1Source.set(word.quizDistractorsTargetToSource[0] || '');
-        this.distractor2Source.set(word.quizDistractorsTargetToSource[1] || '');
-        this.distractor1Target.set(word.quizDistractorsSourceToTarget[0] || '');
-        this.distractor2Target.set(word.quizDistractorsSourceToTarget[1] || '');
-      }
+      if (!word) return;
+
+      this.sourceText.set(word.sourceText);
+      this.targetText.set(word.targetText);
+      this.category.set(word.category);
+      this.listId.set(word.listId);
+      this.note.set(word.note ?? '');
+
+      this.quiz.set({
+        sourceToTarget: word.quizDistractorsSourceToTarget ?? ['', ''],
+        targetToSource: word.quizDistractorsTargetToSource ?? ['', ''],
+      });
     });
   }
 
-  public async handleSubmit(): Promise<void> {
+  // ===== UPDATE QUIZ SIGNAL =====
+  updateQuiz(direction: 'sourceToTarget' | 'targetToSource', index: number, value: string) {
+    this.quiz.update((q) => ({
+      ...q,
+      [direction]: q[direction].map((v, i) => (i === index ? value : v)),
+    }));
+  }
+
+  // ===== SAVE =====
+  async handleSubmit() {
     if (!this.isValid() || this.isSaving()) return;
 
     this.isSaving.set(true);
 
     try {
-      const selectedList = this.wordLists().find((l) => l.id === this.listId());
-      if (!selectedList) {
-        throw new Error('Lista nije pronađena');
-      }
+      const list = this.selectedList();
+      if (!list || !this.category()) throw new Error('Lista ili kategorija nisu izabrani');
 
-      const wordData = {
+      const wordData: CreateWordDto = {
         sourceText: this.sourceText(),
         targetText: this.targetText(),
-        category: this.category() as WordCategory,
+        category: this.category()!,
         listId: this.listId(),
-        languagePair: selectedList.languagePair,
-        quizDistractorsSourceToTarget: [this.distractor1Target(), this.distractor2Target()],
-        quizDistractorsTargetToSource: [this.distractor1Source(), this.distractor2Source()],
+        note: this.note(),
+        languagePair: list.languagePair,
+        quizDistractorsSourceToTarget: this.quiz().sourceToTarget,
+        quizDistractorsTargetToSource: this.quiz().targetToSource,
       };
 
       if (this.isEditMode()) {
@@ -134,7 +166,15 @@ export class AddWordComponent {
     }
   }
 
-  public handleCancel(): void {
+  handleCancel() {
     this.router.navigate(['/words']);
+  }
+
+  setCategory(value: string | null) {
+    this.category.set((value as WordCategory) ?? null);
+  }
+
+  setList(value: string | null) {
+    this.listId.set(value ?? '');
   }
 }

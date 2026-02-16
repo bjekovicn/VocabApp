@@ -31,7 +31,12 @@ export class ListManagerPage {
     }));
   });
 
-  public readonly deleteConfirmId = signal<string | null>(null);
+  public readonly openMenuId = signal<string | null>(null);
+  public readonly deleteModalListId = signal<string | null>(null);
+
+  // ================================
+  // NAVIGACIJA
+  // ================================
 
   public navigateToCreate(): void {
     this.router.navigate(['/word-lists/create']);
@@ -45,23 +50,47 @@ export class ListManagerPage {
     this.router.navigate(['/words'], { queryParams: { listId } });
   }
 
+  // ================================
+  // THREE DOTS MENU
+  // ================================
+
+  public toggleMenu(id: string, event: Event): void {
+    event.stopPropagation(); // sprečava navigaciju na klik kartice
+    this.openMenuId.set(this.openMenuId() === id ? null : id);
+  }
+
+  public closeMenu(): void {
+    this.openMenuId.set(null);
+  }
+
+  // ================================
+  // DELETE DIALOG
+  // ================================
+
   public confirmDelete(id: string): void {
-    this.deleteConfirmId.set(id);
+    this.deleteModalListId.set(id);
   }
 
-  public cancelDelete(): void {
-    this.deleteConfirmId.set(null);
+  public closeDeleteModal(): void {
+    this.deleteModalListId.set(null);
   }
 
-  public async deleteList(id: string): Promise<void> {
+  public async deleteListConfirmed(): Promise<void> {
+    const id = this.deleteModalListId();
+    if (!id) return;
+
     try {
       await this.storage.deleteWordListWithWords(id);
-      this.deleteConfirmId.set(null);
+      this.closeDeleteModal();
     } catch (error) {
       console.error('Error deleting list:', error);
       alert('Greška pri brisanju liste');
     }
   }
+
+  // ================================
+  // HELPERS
+  // ================================
 
   private getLanguagePairDisplay(languagePair: string): string {
     const [source, target] = languagePair.split('-');

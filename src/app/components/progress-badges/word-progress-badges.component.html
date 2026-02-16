@@ -1,0 +1,46 @@
+<div class="flex gap-2">
+  <!-- Repetitions -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"
+    [ngClass]="{
+      'bg-green-100 text-green-700': effectiveRepetitions() >= 5,
+      'bg-yellow-100 text-yellow-700': effectiveRepetitions() >= 2 && effectiveRepetitions() < 5,
+      'bg-gray-100 text-gray-600': effectiveRepetitions() < 2,
+    }"
+  >
+    🔁 <span class="truncate">{{ effectiveRepetitions() }}x</span>
+  </div>
+
+  <!-- Ease Factor -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"
+    [ngClass]="{
+      'bg-green-100 text-green-700': easeFactor() >= 2.5,
+      'bg-yellow-100 text-yellow-700': easeFactor() >= 2.0 && easeFactor() < 2.5,
+      'bg-red-100 text-red-700': easeFactor() < 2.0,
+    }"
+  >
+    ⚡ <span class="truncate">{{ easeFactor().toFixed(2) }}</span>
+  </div>
+
+  <!-- Days since review -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold bg-gray-100 text-gray-600"
+  >
+    🕐 <span class="truncate">{{ daysSinceReview() === 999 ? '–' : daysSinceReview() + 'd' }}</span>
+  </div>
+
+  <!-- Score -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"
+    [ngClass]="{
+      'bg-gray-100 text-gray-600': scoreRatio() === null,
+      'bg-green-100 text-green-700': scoreRatio() !== null && scoreRatio()! >= 0.75,
+      'bg-yellow-100 text-yellow-700':
+        scoreRatio() !== null && scoreRatio()! >= 0.5 && scoreRatio()! < 0.75,
+      'bg-red-100 text-red-700': scoreRatio() !== null && scoreRatio()! < 0.5,
+    }"
+  >
+    ✅ <span class="truncate">{{ correctCount() }}/{{ incorrectCount() }}</span>
+  </div>
+</div>

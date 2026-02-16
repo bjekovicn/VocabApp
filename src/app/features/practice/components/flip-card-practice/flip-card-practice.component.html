@@ -19,36 +19,72 @@
   </div>
 
   @if (currentWord(); as word) {
-    <app-custom-card>
-      <div class="text-center py-8 sm:py-12 px-4">
+    <app-custom-card class="min-h-66 cursor-pointer select-none" (click)="flipCard()">
+      <div class="text-center pt-8 sm:py-12 px-4">
         @if (!isFlipped()) {
-          <div class="cursor-pointer select-none" (click)="flipCard()">
+          <div class="pointer-events-none">
             <div
               class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 wrap-break-word leading-tight"
             >
               {{ questionText() }}
             </div>
 
-            <p class="text-gray-500 text-sm sm:text-base">Klikni da okreneš</p>
-          </div>
-        } @else {
-          <div
-            class="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-600 mb-6 wrap-break-word leading-tight"
-          >
-            {{ answerText() }}
+            <p class="text-gray-500 text-sm sm:text-base">↻ Klikni da okreneš karticu</p>
           </div>
 
-          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-6 sm:mt-8">
-            <app-custom-button variant="danger" (clicked)="handleAnswer(false)">
+          <div class="flex flex-col gap-3 mt-6">
+            @if (hintLevel() === 0 || hintText() !== answerText()) {
+              <app-custom-button
+                variant="secondary"
+                (clicked)="revealHint(); $event.stopPropagation()"
+              >
+                💡 Hint
+              </app-custom-button>
+            } @else {
+              <div class="h-10"></div>
+            }
+          </div>
+
+          <div class="h-12 text-center items-center flex justify-center">
+            @if (hintLevel() > 0) {
+              <div class="text-sm text-center text-primary-500 font-mono">
+                {{ hintText() }}
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="pointer-events-none">
+            <div
+              class="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-600 mb-4 wrap-break-word leading-tight"
+            >
+              {{ answerText() }}
+            </div>
+
+            <p class="text-gray-500 text-sm sm:text-base">↻ Klikni da vratiš karticu</p>
+          </div>
+
+          <div class="flex flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
+            <app-custom-button variant="danger" class="w-full" (clicked)="handleAnswer(false)">
               Ne znam
             </app-custom-button>
 
-            <app-custom-button variant="primary" (clicked)="handleAnswer(true)">
+            <app-custom-button variant="primary" class="w-full" (clicked)="handleAnswer(true)">
               Znam
             </app-custom-button>
           </div>
+
+          <div class="h-12"></div>
         }
       </div>
     </app-custom-card>
+
+    @if (isFlipped() && word.note) {
+      <div
+        class="mt-4 flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3"
+      >
+        <span class="text-base">💡</span>
+        <p class="text-sm text-amber-800 leading-relaxed">{{ word.note }}</p>
+      </div>
+    }
   }
 }

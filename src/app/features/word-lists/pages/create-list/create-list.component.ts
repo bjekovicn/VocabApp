@@ -9,7 +9,6 @@ import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomInputComponent } from '@shared/input/custom-input';
 import { CustomSelectComponent } from '@shared/select/custom-select';
-import { CustomTextareaComponent } from '@shared/textarea/custom-textarea';
 import { SelectOption } from '@shared/select/custom-select.types';
 
 @Component({
@@ -20,7 +19,6 @@ import { SelectOption } from '@shared/select/custom-select.types';
     CustomCardComponent,
     CustomButtonComponent,
     CustomInputComponent,
-    CustomTextareaComponent,
     CustomSelectComponent,
   ],
   templateUrl: './create-list.component.html',
@@ -40,9 +38,8 @@ export class CreateListPage {
   );
 
   public readonly name = signal('');
-  public readonly description = signal('');
   public readonly sourceLanguage = signal('');
-  public readonly targetLanguage = signal('sr');
+  public readonly targetLanguage = signal(''); // fix: bio je 'sr' pa je uvijek pokazivao srpski pri editu
 
   public readonly languageOptions = signal<SelectOption[]>(
     SUPPORTED_LANGUAGES.map((lang) => ({
@@ -54,7 +51,6 @@ export class CreateListPage {
   public readonly isValid = computed(
     () =>
       this.name().trim() !== '' &&
-      this.description().trim() !== '' &&
       this.sourceLanguage() !== '' &&
       this.targetLanguage() !== '' &&
       this.sourceLanguage() !== this.targetLanguage(),
@@ -75,7 +71,6 @@ export class CreateListPage {
     this.storage.getWordListById(id).subscribe((list) => {
       if (list) {
         this.name.set(list.name);
-        this.description.set(list.description);
         const [source, target] = list.languagePair.split('-');
         this.sourceLanguage.set(source);
         this.targetLanguage.set(target);
@@ -94,13 +89,11 @@ export class CreateListPage {
       if (this.isEditMode()) {
         await this.storage.updateWordList(this.listId()!, {
           name: this.name(),
-          description: this.description(),
           languagePair,
         });
       } else {
         await this.storage.createWordList({
           name: this.name(),
-          description: this.description(),
           languagePair,
         });
       }

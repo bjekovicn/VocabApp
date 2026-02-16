@@ -9,6 +9,7 @@ export interface Word {
   category: WordCategory;
   listId: string;
   languagePair: LanguagePair; // npr. "de-sr"
+  note?: string;
 
   // Quiz opcije (2 pogrešna odgovora)
   quizDistractorsSourceToTarget: string[]; // 2 pogrešna prevoda
@@ -28,6 +29,7 @@ export interface CreateWordDto {
   sourceText: string;
   targetText: string;
   category: WordCategory;
+  note?: string;
   listId: string;
   languagePair: LanguagePair;
   quizDistractorsSourceToTarget: string[];

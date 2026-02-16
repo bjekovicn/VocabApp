@@ -23,52 +23,48 @@
     } @else {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (list of lists(); track list.id) {
-          <app-custom-card [hover]="true">
-            <div class="flex flex-col h-full">
+          <app-custom-card [hover]="true" class="relative">
+            <!-- Three dots menu -->
+            <div class="absolute top-2 right-2 z-10">
+              <button
+                class="p-2 rounded-full hover:bg-gray-100"
+                (click)="toggleMenu(list.id, $event)"
+              >
+                ⋮
+              </button>
+
+              @if (openMenuId() === list.id) {
+                <div
+                  class="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg"
+                >
+                  <button
+                    class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    (click)="navigateToEdit(list.id); closeMenu()"
+                  >
+                    Izmeni
+                  </button>
+                  <button
+                    class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    (click)="confirmDelete(list.id); closeMenu()"
+                  >
+                    Obriši
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Klikabilna površina -->
+            <div class="flex flex-col h-full cursor-pointer" (click)="navigateToWords(list.id)">
               <div
                 class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded mb-3 inline-block self-start"
               >
                 {{ list.languagePairDisplay }}
               </div>
               <h3 class="text-xl font-bold text-gray-900 mb-2">{{ list.name }}</h3>
-              <p class="text-gray-600 text-sm mb-4 flex-grow">{{ list.description }}</p>
-              <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+              <div class="flex items-center justify-between pb-4 border-t border-gray-200">
                 <span class="text-2xl font-bold text-primary-600">{{ list.wordCount }}</span>
                 <span class="text-sm text-gray-500">reči</span>
               </div>
-              @if (deleteConfirmId() === list.id) {
-                <div class="space-y-2">
-                  <p class="text-sm text-red-600 font-medium">Sigurno želiš da obrišeš?</p>
-                  <div class="flex gap-2">
-                    <app-custom-button
-                      variant="danger"
-                      [fullWidth]="true"
-                      (clicked)="deleteList(list.id)"
-                    >
-                      Da, obriši
-                    </app-custom-button>
-                    <app-custom-button
-                      variant="secondary"
-                      [fullWidth]="true"
-                      (clicked)="cancelDelete()"
-                    >
-                      Otkaži
-                    </app-custom-button>
-                  </div>
-                </div>
-              } @else {
-                <div class="grid grid-cols-3 gap-2">
-                  <app-custom-button variant="secondary" (clicked)="navigateToWords(list.id)">
-                    Reči
-                  </app-custom-button>
-                  <app-custom-button variant="secondary" (clicked)="navigateToEdit(list.id)">
-                    Izmeni
-                  </app-custom-button>
-                  <app-custom-button variant="danger" (clicked)="confirmDelete(list.id)">
-                    Obriši
-                  </app-custom-button>
-                </div>
-              }
             </div>
           </app-custom-card>
         }
@@ -76,3 +72,24 @@
     }
   </div>
 </div>
+
+<!-- Delete dialog -->
+@if (deleteModalListId() !== null) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl p-6 w-80">
+      <h3 class="text-lg font-semibold mb-2">Obrisati listu?</h3>
+      <p class="text-sm text-gray-600 mb-4">
+        Sve reči u listi će biti obrisane. Ova akcija je trajna.
+      </p>
+
+      <div class="flex justify-end gap-2">
+        <app-custom-button variant="secondary" (clicked)="closeDeleteModal()">
+          Otkaži
+        </app-custom-button>
+        <app-custom-button variant="danger" (clicked)="deleteListConfirmed()">
+          Obriši
+        </app-custom-button>
+      </div>
+    </div>
+  </div>
+}

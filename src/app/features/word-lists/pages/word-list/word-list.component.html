@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center mb-8">
       <div>
         <h1 class="text-4xl font-bold text-gray-900 mb-2">Sve Reči</h1>
-        <p class="text-gray-600">Pregled i upravljanje rečima</p>
+        <p class="text-gray-600">Poredane od najgorih ka najboljim</p>
       </div>
       <app-custom-button variant="primary" (clicked)="navigateToAdd()">
         Dodaj Reč
@@ -16,7 +16,6 @@
         [options]="listOptions()"
         [(value)]="selectedListId"
       />
-
       <app-custom-select
         label="Filtriraj po kategoriji"
         [options]="categoryOptions()"
@@ -35,43 +34,76 @@
         </div>
       </app-custom-card>
     } @else {
-      <div class="space-y-4">
+      <div class="space-y-3">
         @for (word of filteredWords(); track word.id) {
-          <app-custom-card [hover]="true">
-            <div class="flex items-center justify-between">
-              <div class="grow">
-                <div class="flex items-center gap-3 mb-2">
-                  <h3 class="text-xl font-bold text-gray-900">{{ word.sourceText }}</h3>
-                  <span class="text-lg text-gray-600">→</span>
-                  <h3 class="text-xl font-bold text-gray-900">{{ word.targetText }}</h3>
+          <app-custom-card class="my-1 relative" [hover]="true">
+            <!-- Three dots menu -->
+            <div class="absolute top-2 right-2">
+              <button class="p-2 p-x4 rounded-full hover:bg-gray-100" (click)="toggleMenu(word.id)">
+                ⋮
+              </button>
+
+              @if (openMenuId() === word.id) {
+                <div
+                  class="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
+                >
+                  <button
+                    class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    (click)="navigateToEdit(word.id); closeMenu()"
+                  >
+                    Izmeni
+                  </button>
+                  <button
+                    class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    (click)="confirmDelete(word.id); closeMenu()"
+                  >
+                    Obriši
+                  </button>
                 </div>
-                <div class="flex gap-4 text-sm text-gray-600">
-                  <span class="bg-gray-100 px-2 py-1 rounded">{{
-                    getCategoryLabel(word.category)
-                  }}</span>
-                  <span class="bg-primary-50 text-primary-700 px-2 py-1 rounded">{{
-                    getListName(word.listId)
-                  }}</span>
+              }
+            </div>
+
+            <div class="p-1">
+              <!-- Gornji red: reč -->
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="text-lg font-bold text-gray-900 wrap-break-word">
+                      {{ word.sourceText }}
+                    </span>
+                    <span class="text-gray-400">→</span>
+                    <span class="text-lg font-bold text-primary-600 wrap-break-word">
+                      {{ word.targetText }}
+                    </span>
+                  </div>
+
+                  <!-- Meta badges -->
+                  <div class="flex flex-wrap gap-2 mb-3">
+                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                      {{ getCategoryLabel(word.category) }}
+                    </span>
+                    <span class="bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded">
+                      {{ getListName(word.listId) }}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="flex gap-2 mt-2">
-              @if (deleteConfirmId() === word.id) {
-                <div class="flex gap-2">
-                  <app-custom-button variant="danger" (clicked)="deleteWord(word.id)">
-                    Potvrdi
-                  </app-custom-button>
-                  <app-custom-button variant="secondary" (clicked)="cancelDelete()">
-                    Otkaži
-                  </app-custom-button>
+
+              <app-word-progress-badges
+                [repetitions]="getTotalAttempts(word)"
+                [correctCount]="getTotalCorrect(word)"
+                [incorrectCount]="getTotalIncorrect(word)"
+                [easeFactor]="getAvgEaseFactor(word)"
+                [daysSinceReview]="getDaysSinceReview(word)"
+              />
+
+              @if (word.note) {
+                <div
+                  class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2"
+                >
+                  <span class="text-sm">💡</span>
+                  <p class="text-xs text-amber-800 leading-relaxed">{{ word.note }}</p>
                 </div>
-              } @else {
-                <app-custom-button variant="secondary" (clicked)="navigateToEdit(word.id)">
-                  Izmeni
-                </app-custom-button>
-                <app-custom-button variant="danger" (clicked)="confirmDelete(word.id)">
-                  Obriši
-                </app-custom-button>
               }
             </div>
           </app-custom-card>
@@ -80,3 +112,21 @@
     }
   </div>
 </div>
+
+@if (deleteModalWordId() !== null) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl p-6 w-80">
+      <h3 class="text-lg font-semibold mb-2">Obrisati reč?</h3>
+      <p class="text-sm text-gray-600 mb-4">Ova akcija je trajna.</p>
+
+      <div class="flex justify-end gap-2">
+        <app-custom-button variant="secondary" (clicked)="closeDeleteModal()">
+          Otkaži
+        </app-custom-button>
+        <app-custom-button variant="danger" (clicked)="deleteWordConfirmed()">
+          Obriši
+        </app-custom-button>
+      </div>
+    </div>
+  </div>
+}

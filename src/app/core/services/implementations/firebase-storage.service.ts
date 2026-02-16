@@ -94,7 +94,6 @@ export class FirebaseStorageService extends StorageService {
           const list: WordList = {
             id: snapshot.id,
             name: data['name'],
-            description: data['description'],
             languagePair: data['languagePair'],
             createdAt: data['createdAt']?.toDate() || new Date(),
             updatedAt: data['updatedAt']?.toDate() || new Date(),
@@ -118,10 +117,10 @@ export class FirebaseStorageService extends StorageService {
 
     const docRef = await addDoc(listsRef, {
       name: dto.name,
-      description: dto.description,
       languagePair: dto.languagePair,
       createdAt: now,
       updatedAt: now,
+      note: dto.note,
     });
 
     return docRef.id;
@@ -283,6 +282,7 @@ export class FirebaseStorageService extends StorageService {
       category: data['category'],
       listId: data['listId'],
       languagePair: data['languagePair'],
+      note: data['note'] || undefined,
       quizDistractorsSourceToTarget: data['quizDistractorsSourceToTarget'] || [],
       quizDistractorsTargetToSource: data['quizDistractorsTargetToSource'] || [],
       flipCardSourceToTarget: this.firestoreToProgress(

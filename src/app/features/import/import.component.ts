@@ -50,7 +50,8 @@ export class ImportComponent {
   });
 
   // AI FULL PROMPT (JSON + CATEGORY ENUM)
-  public readonly aiFullPrompt = `Generiši JSON u sledećem formatu.
+  public readonly aiFullPrompt = `
+Generiši JSON u sledećem formatu.
 
 DOZVOLJENE category vrednosti (koristi ISKLJUČIVO jednu od ovih):
 - "noun"
@@ -83,7 +84,8 @@ Format mora biti OVAKAV:
   ]
 }
 
-Jezik: nemački → srpski
+Izvorni Jezik: ?
+Ciljni Jezik: ?
 Tema: ?`;
 
   // FILE SELECT

@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ElementRef, inject, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-custom-button',
@@ -18,12 +18,18 @@ export class CustomButtonComponent {
     }
   }
 
+  private host = inject(ElementRef<HTMLElement>);
+
+  private getHostClasses(): string {
+    return this.host.nativeElement.className || '';
+  }
+
   public getButtonClasses(): string {
     const baseClasses = 'btn';
     const variantClass = `btn-${this.variant()}`;
     const widthClass = this.fullWidth() ? 'w-full' : '';
     const disabledClass = this.disabled() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
 
-    return `${baseClasses} ${variantClass} ${widthClass} ${disabledClass}`.trim();
+    return `${baseClasses} ${variantClass} ${widthClass} ${disabledClass} ${this.getHostClasses()}`.trim();
   }
 }
