@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-between items-center h-16">
       <!-- Logo -->
-      <div class="flex-shrink-0">
+      <div class="shrink-0">
         <a routerLink="/" class="text-2xl font-bold"> VocabApp </a>
       </div>
 
@@ -39,6 +39,14 @@
           class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
           Vežbaj
+        </a>
+
+        <a
+          routerLink="/progress"
+          routerLinkActive="bg-primary-700"
+          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Progres
         </a>
 
         <a
@@ -113,6 +121,15 @@
           class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
           Vežbaj
+        </a>
+
+        <a
+          routerLink="/progress"
+          routerLinkActive="bg-primary-700"
+          (click)="closeMenu()"
+          class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
+        >
+          Progres
         </a>
 
         <a

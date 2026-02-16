@@ -20,6 +20,7 @@ export class FlipCardPracticeComponent {
   public readonly currentIndex = signal(0);
   public readonly isFlipped = signal(false);
   public readonly results = signal<PracticeResult[]>([]);
+  public readonly hintLevel = signal(0);
 
   public readonly hasWords = computed(() => this.words()?.length > 0);
 
@@ -38,16 +39,54 @@ export class FlipCardPracticeComponent {
 
   public flipCard(): void {
     if (!this.currentWord()) return;
-    this.isFlipped.set(true);
+    this.isFlipped.update((flipped) => !flipped);
   }
+
+  public revealHint(): void {
+    const currentHint = this.hintLevel();
+    const answer = this.answerText();
+    const words = answer.split(' ');
+
+    if (words.length > 1) {
+      // Rečenica - otkrivaj reč po reč
+      if (currentHint < words.length) {
+        this.hintLevel.update((level) => level + 1);
+      }
+    } else {
+      // Jedna reč - otkrivaj 10% ili minimum 1 slovo
+      const maxHints = Math.max(1, Math.ceil(answer.length * 0.1));
+      if (currentHint < answer.length) {
+        this.hintLevel.update((level) => Math.min(level + maxHints, answer.length));
+      }
+    }
+  }
+
+  public readonly hintText = computed(() => {
+    const level = this.hintLevel();
+    if (level === 0) return '';
+
+    const answer = this.answerText();
+    const words = answer.split(' ');
+
+    if (words.length > 1) {
+      // Rečenica - prikaži prvih N reči
+      return words.slice(0, level).join(' ') + (level < words.length ? ' ...' : '');
+    } else {
+      // Jedna reč - prikaži prvih N slova
+      return (
+        answer.slice(0, level) + (level < answer.length ? '_'.repeat(answer.length - level) : '')
+      );
+    }
+  });
 
   public handleAnswer(correct: boolean): void {
     const word = this.currentWord();
     if (!word) return;
+    this.isFlipped.set(true);
 
     this.results.update((r) => [...r, { word, correct }]);
 
-    this.isFlipped.set(false);
+    this.hintLevel.set(0);
 
     setTimeout(() => {
       const nextIdx = this.currentIndex() + 1;

@@ -101,4 +101,8 @@ export class HomePage {
   public navigateToAddWord(): void {
     this.router.navigate(['/words/add']);
   }
+
+  public navigateToProgress(): void {
+    this.router.navigate(['/progress']);
+  }
 }

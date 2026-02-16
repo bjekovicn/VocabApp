@@ -1,0 +1,68 @@
+<div class="border border-gray-100 rounded-xl overflow-hidden mt-2">
+  <!-- Header -->
+  <div
+    class="grid grid-cols-4 bg-gray-50 text-xs font-semibold text-gray-500 px-3 py-2 border-b border-gray-100"
+  >
+    <div>Mod</div>
+    <div class="text-center">Repeticije</div>
+    <div class="text-center">Faktor</div>
+    <div class="text-center">✓ / ✗</div>
+  </div>
+
+  @for (detail of details(); track detail.mode) {
+    <div
+      class="grid grid-cols-4 px-3 py-2 text-xs border-b border-gray-50 last:border-0"
+      [class.bg-white]="detail.mode === activeMode()"
+      [class.font-semibold]="detail.mode === activeMode()"
+    >
+      <!-- Mode -->
+      <div class="flex items-center gap-1 text-gray-700">
+        <span [class.text-primary-600]="detail.mode === activeMode()">
+          {{ detail.label }}
+        </span>
+        @if (detail.mode === activeMode()) {
+          <span class="text-primary-400 text-[10px]">◀</span>
+        }
+      </div>
+
+      <!-- Repetitions -->
+      <div class="text-center">
+        <span
+          class="inline-block px-1.5 py-0.5 rounded text-[11px] font-bold"
+          [class]="
+            getRepetitionsBg(getEffectiveRepetitions(detail.correctCount, detail.incorrectCount))
+          "
+        >
+          {{ getEffectiveRepetitions(detail.correctCount, detail.incorrectCount) }}
+        </span>
+      </div>
+
+      <!-- Ease factor -->
+      <div class="text-center">
+        <div [class]="getEaseFactorColor(detail.easeFactor)" class="font-bold">
+          {{ detail.easeFactor.toFixed(2) }}
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-1 mt-0.5">
+          <div
+            class="h-1 rounded-full"
+            [class]="
+              detail.easeFactor >= 2.5
+                ? 'bg-green-500'
+                : detail.easeFactor >= 2.0
+                  ? 'bg-yellow-400'
+                  : 'bg-red-500'
+            "
+            [style.width.%]="((detail.easeFactor - 1.3) / (2.5 - 1.3)) * 100"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Correct / Incorrect -->
+      <div class="text-center">
+        <span class="text-green-600 font-bold">{{ detail.correctCount }}</span>
+        <span class="text-gray-400 mx-0.5">/</span>
+        <span class="text-red-600 font-bold">{{ detail.incorrectCount }}</span>
+      </div>
+    </div>
+  }
+</div>

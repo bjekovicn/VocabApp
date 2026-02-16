@@ -14,9 +14,16 @@ export class SM2SpacedRepetitionService extends SpacedRepetitionService {
 
     if (correct) {
       const newRepetitions = progress.repetitions + 1;
-      let newEaseFactor = progress.easeFactor;
-      let intervalDays = 0;
 
+      // SM2 formula: easeFactor raste sa svakim tačnim odgovorom
+      // q=5 (odlično) → povećava se, q=3 (tačno ali teško) → blago raste
+      const q = 4; // podrazumevana vrednost za "tačno"
+      const newEaseFactor = Math.max(
+        1.3,
+        progress.easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)),
+      );
+
+      let intervalDays = 0;
       if (newRepetitions === 1) {
         intervalDays = 1;
       } else if (newRepetitions === 2) {
@@ -29,8 +36,6 @@ export class SM2SpacedRepetitionService extends SpacedRepetitionService {
         intervalDays = Math.round(prevIntervalDays * newEaseFactor);
       }
 
-      newEaseFactor = Math.max(1.3, newEaseFactor);
-
       const nextReview = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
 
       return {
@@ -42,11 +47,17 @@ export class SM2SpacedRepetitionService extends SpacedRepetitionService {
         incorrectCount: progress.incorrectCount,
       };
     } else {
+      // FIX: Ne resetujemo repetitions na 0 — pamtimo koliko je puta vežbano
+      // Smanjujemo za 1 (min 1 da ne postane 'new' ponovo), i easeFactor pada
+      const newRepetitions = Math.max(1, progress.repetitions - 1);
+      const newEaseFactor = Math.max(1.3, progress.easeFactor - 0.3);
+
+      // Vraćamo reč za kratki review (10 minuta)
       const nextReview = new Date(now.getTime() + 10 * 60 * 1000);
 
       return {
-        repetitions: 0,
-        easeFactor: Math.max(1.3, progress.easeFactor - 0.2),
+        repetitions: newRepetitions,
+        easeFactor: newEaseFactor,
         nextReview,
         lastReview: now,
         correctCount: progress.correctCount,

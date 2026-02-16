@@ -1,0 +1,27 @@
+<div class="flex gap-2">
+  <!-- Repetitions -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"
+    [class]="getRepetitionsBg()"
+  >
+    🔁
+    <span class="truncate">{{ getEffectiveRepetitions() }}x</span>
+  </div>
+
+  <!-- Ease Factor -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"
+    [class]="getEaseFactorBg()"
+  >
+    ⚡
+    <span class="truncate">{{ easeFactor().toFixed(2) }}</span>
+  </div>
+
+  <!-- Days since review -->
+  <div
+    class="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold bg-gray-100 text-gray-600"
+  >
+    🕐
+    <span class="truncate">{{ daysSinceReview() === 999 ? '–' : daysSinceReview() + 'd' }}</span>
+  </div>
+</div>

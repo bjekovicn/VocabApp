@@ -5,8 +5,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { Word } from '@core/models/word.model';
-import { PracticeMode, PRACTICE_MODES } from '@core/models/practice-mode.model';
-import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
+import { PracticeMode } from '@core/models/practice-mode.model';
+import { WordCategory } from '@core/models/word-category.model';
 import { PracticeResult, PracticeStats } from '@core/models/practice-session.model';
 import { CustomSelectComponent } from '@shared/select/custom-select';
 import { CustomButtonComponent } from '@shared/button/custom-button';
@@ -16,6 +16,8 @@ import { FlipCardPracticeComponent } from '../components/flip-card-practice/flip
 import { QuizPracticeComponent } from '../components/quiz-practice/quiz-practice.component';
 
 type PracticeState = 'setup' | 'practicing' | 'results';
+type PracticeDirection = 'source-target' | 'target-source';
+type PracticeType = 'flip-card' | 'quiz';
 
 @Component({
   selector: 'app-practice-page',
@@ -39,25 +41,24 @@ export class PracticeComponent {
   private readonly wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
 
   public readonly state = signal<PracticeState>('setup');
-  public readonly selectedMode = signal<PracticeMode>('flip-card-source-target');
-  public readonly selectedCategories = signal<WordCategory[]>([]);
 
+  // Odvojeni signali za pravac i tip — kombinuju se u selectedMode
+  public readonly selectedDirection = signal<PracticeDirection>('source-target');
+  public readonly selectedType = signal<PracticeType>('flip-card');
+
+  public readonly selectedMode = computed<PracticeMode>(
+    () => `${this.selectedType()}-${this.selectedDirection()}` as PracticeMode,
+  );
+
+  public readonly selectedCategories = signal<WordCategory[]>([]);
   public readonly practiceWords = signal<Word[]>([]);
   public readonly sessionResults = signal<PracticeResult[]>([]);
   public readonly selectedListId = signal<string | null>(null);
 
-  public readonly modeOptions = signal<SelectOption[]>(
-    PRACTICE_MODES.map((mode) => ({ value: mode.value, label: mode.label })),
-  );
-
-  public readonly listOptions = computed(() => [
+  public readonly listOptions = computed<SelectOption[]>(() => [
     { value: 'all', label: 'Sve liste' },
     ...this.wordLists().map((list) => ({ value: list.id, label: list.name })),
   ]);
-
-  public readonly categoryOptions = signal<SelectOption[]>(
-    WORD_CATEGORIES.map((cat) => ({ value: cat.value, label: cat.label })),
-  );
 
   public readonly availableWords = computed(() => {
     let words = this.allWords();
@@ -110,10 +111,7 @@ export class PracticeComponent {
 
   public async handlePracticeFinished(results: PracticeResult[]): Promise<void> {
     this.sessionResults.set(results);
-
-    // Batch update progress for all words
     await this.batchUpdateProgress(results);
-
     this.state.set('results');
   }
 

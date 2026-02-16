@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { HomePage } from '@features/home/pages/home.component';
 import { ImportComponent } from '@features/import/import.component';
 import { PracticeComponent } from '@features/practice/pages/practice.component';
+import { ProgressReviewPage } from '@features/progress/pages/progress-review.component';
 import { AddWordComponent } from '@features/word-lists/pages/add-word/add-word.component';
 import { CreateListPage } from '@features/word-lists/pages/create-list/create-list.component';
 import { ListManagerPage } from '@features/word-lists/pages/list-manager/list-manager.component';
@@ -17,5 +18,6 @@ export const routes: Routes = [
   { path: 'words/edit/:id', component: AddWordComponent },
   { path: 'practice', component: PracticeComponent },
   { path: 'import', component: ImportComponent },
+  { path: 'progress', component: ProgressReviewPage },
   { path: '**', redirectTo: '' },
 ];

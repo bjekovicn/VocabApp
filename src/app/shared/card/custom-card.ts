@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, ElementRef, inject, input } from '@angular/core';
 
 @Component({
   selector: 'app-custom-card',
@@ -8,6 +8,12 @@ import { Component, input } from '@angular/core';
 export class CustomCardComponent {
   public readonly padding = input<'none' | 'sm' | 'md' | 'lg'>('md');
   public readonly hover = input<boolean>(false);
+
+  private host = inject(ElementRef<HTMLElement>);
+
+  private getHostClasses(): string {
+    return this.host.nativeElement.className || '';
+  }
 
   public getCardClasses(): string {
     const paddingClasses: Record<string, string> = {
@@ -21,6 +27,6 @@ export class CustomCardComponent {
     const paddingClass = paddingClasses[this.padding()];
     const hoverClass = this.hover() ? 'hover:shadow-md transition-shadow cursor-pointer' : '';
 
-    return `${baseClasses} ${paddingClass} ${hoverClass}`.trim();
+    return `${baseClasses} ${paddingClass} ${hoverClass} ${this.getHostClasses()}`.trim();
   }
 }

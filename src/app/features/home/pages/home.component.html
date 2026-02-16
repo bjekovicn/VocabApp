@@ -5,7 +5,7 @@
       <p class="text-gray-600">Dobrodošao nazad! Vreme je za učenje.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       <app-custom-card>
         <div class="text-center">
           <div class="text-4xl font-bold text-primary-600">{{ dueToday() }}</div>
@@ -35,9 +35,12 @@
       </app-custom-card>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       <app-custom-button variant="primary" [fullWidth]="true" (clicked)="navigateToPractice()">
         Počni učenje
+      </app-custom-button>
+      <app-custom-button variant="secondary" [fullWidth]="true" (clicked)="navigateToProgress()">
+        📊 Moj Napredak
       </app-custom-button>
       <app-custom-button variant="secondary" [fullWidth]="true" (clicked)="navigateToAddWord()">
         Dodaj reč
