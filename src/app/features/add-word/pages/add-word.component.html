@@ -9,7 +9,6 @@
     <app-custom-card>
       <div class="flex flex-col space-y-3">
         <!-- Lista + Kategorija -->
-
         <app-custom-select
           label="Lista"
           placeholder="Izaberi listu"
@@ -44,52 +43,26 @@
           </div>
 
           <!-- Quiz sekcija -->
-          <div class="border-t pt-6 space-y-5">
-            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+          <div class="border-t pt-6">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-5">
               Pogrešni odgovori za kviz
             </h3>
 
-            <!-- Source → Target -->
-            <div class="p-4 flex flex-col bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-              <label class="block text-sm font-medium text-gray-700">
-                {{ langs.source }}
-              </label>
-
-              <app-custom-input
-                placeholder="Pogrešna reč 1"
-                [value]="quiz().sourceToTarget[0]"
-                (valueChange)="updateQuiz('sourceToTarget', 0, $event)"
-              />
-              <app-custom-input
-                placeholder="Pogrešna reč 2"
-                [value]="quiz().sourceToTarget[1]"
-                (valueChange)="updateQuiz('sourceToTarget', 1, $event)"
-              />
-            </div>
-
-            <!-- Target → Source -->
-            <div class="p-4 flex flex-col bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-              <label class="block text-sm font-medium text-gray-700">
-                {{ langs.target }}
-              </label>
-
-              <app-custom-input
-                placeholder="Pogrešan prevod 1"
-                [value]="quiz().targetToSource[0]"
-                (valueChange)="updateQuiz('targetToSource', 0, $event)"
-              />
-              <app-custom-input
-                placeholder="Pogrešan prevod 2"
-                [value]="quiz().targetToSource[1]"
-                (valueChange)="updateQuiz('targetToSource', 1, $event)"
-              />
-            </div>
+            <app-quiz-distractors-editor
+              [sourceToTarget]="quiz().sourceToTarget"
+              [targetToSource]="quiz().targetToSource"
+              [sourceLanguage]="langs.source"
+              [targetLanguage]="langs.target"
+              (sourceToTargetChange)="updateQuizSourceToTarget($event)"
+              (targetToSourceChange)="updateQuizTargetToSource($event)"
+            />
           </div>
 
+          <!-- Beleška -->
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-gray-700">Beleška (opciono)</label>
             <textarea
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows="3"
               placeholder="Šta te asocira na ovu reč..."
               [value]="note()"

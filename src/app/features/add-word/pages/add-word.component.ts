@@ -14,6 +14,7 @@ import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomInputComponent } from '@shared/input/custom-input';
 import { CustomSelectComponent } from '@shared/select/custom-select';
 import { SelectOption } from '@shared/select/custom-select.types';
+import { QuizDistractorsEditorComponent } from '../components/quiz-distractors-editor/quiz-distractors-editor.component';
 
 @Component({
   selector: 'app-add-word-page',
@@ -24,6 +25,7 @@ import { SelectOption } from '@shared/select/custom-select.types';
     CustomButtonComponent,
     CustomInputComponent,
     CustomSelectComponent,
+    QuizDistractorsEditorComponent,
   ],
   templateUrl: './add-word.component.html',
 })
@@ -82,6 +84,8 @@ export class AddWordComponent {
     return {
       source: sourceLang ? `${sourceLang.flag} ${sourceLang.name}` : sourceCode.toUpperCase(),
       target: targetLang ? `${targetLang.flag} ${targetLang.name}` : targetCode.toUpperCase(),
+      sourceCode,
+      targetCode,
     };
   });
 
@@ -123,10 +127,17 @@ export class AddWordComponent {
   }
 
   // ===== UPDATE QUIZ SIGNAL =====
-  updateQuiz(direction: 'sourceToTarget' | 'targetToSource', index: number, value: string) {
+  updateQuizSourceToTarget(data: { index: number; value: string }): void {
     this.quiz.update((q) => ({
       ...q,
-      [direction]: q[direction].map((v, i) => (i === index ? value : v)),
+      sourceToTarget: q.sourceToTarget.map((v, i) => (i === data.index ? data.value : v)),
+    }));
+  }
+
+  updateQuizTargetToSource(data: { index: number; value: string }): void {
+    this.quiz.update((q) => ({
+      ...q,
+      targetToSource: q.targetToSource.map((v, i) => (i === data.index ? data.value : v)),
     }));
   }
 

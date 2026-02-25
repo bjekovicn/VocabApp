@@ -12,7 +12,7 @@ import { CustomSelectComponent } from '@shared/select/custom-select';
 import { SelectOption } from '@shared/select/custom-select.types';
 
 @Component({
-  selector: 'app-create-list-page',
+  selector: 'app-create-word-list-page',
   standalone: true,
   imports: [
     CommonModule,
@@ -21,9 +21,9 @@ import { SelectOption } from '@shared/select/custom-select.types';
     CustomInputComponent,
     CustomSelectComponent,
   ],
-  templateUrl: './create-list.component.html',
+  templateUrl: './create-word-list.component.html',
 })
-export class CreateListPage {
+export class CreateWordListPage {
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -39,7 +39,7 @@ export class CreateListPage {
 
   public readonly name = signal('');
   public readonly sourceLanguage = signal('');
-  public readonly targetLanguage = signal(''); // fix: bio je 'sr' pa je uvijek pokazivao srpski pri editu
+  public readonly targetLanguage = signal('');
 
   public readonly languageOptions = signal<SelectOption[]>(
     SUPPORTED_LANGUAGES.map((lang) => ({

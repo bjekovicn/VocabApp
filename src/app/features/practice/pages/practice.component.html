@@ -9,99 +9,23 @@
 
       <app-custom-card class="shadow-lg">
         <div class="p-6 md:p-8 space-y-8">
-          <!-- Pravac (Direction) -->
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Pravac</label>
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                (click)="selectedDirection.set('source-target')"
-                [class]="
-                  selectedDirection() === 'source-target'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-xs font-bold tracking-wide">source → target</span>
-              </button>
+          <!-- Direction Selector -->
+          <app-direction-selector
+            [direction]="selectedDirection()"
+            (directionChange)="handleDirectionChange($event)"
+          />
 
-              <button
-                type="button"
-                (click)="selectedDirection.set('target-source')"
-                [class]="
-                  selectedDirection() === 'target-source'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-xs font-bold tracking-wide">target → source</span>
-              </button>
-            </div>
-          </div>
+          <!-- Practice Type Selector -->
+          <app-practice-type-selector
+            [type]="selectedType()"
+            (typeChange)="handleTypeChange($event)"
+          />
 
-          <!-- Tip vežbanja (Type) -->
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Tip vežbanja</label>
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                (click)="selectedType.set('flip-card')"
-                [class]="
-                  selectedType() === 'flip-card'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-2xl">🃏</span>
-                <span class="text-sm">Flip Card</span>
-              </button>
-
-              <button
-                type="button"
-                (click)="selectedType.set('quiz')"
-                [class]="
-                  selectedType() === 'quiz'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-2xl">📝</span>
-                <span class="text-sm">Quiz</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Redosled reči -->
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Redosled reči</label>
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                (click)="shuffleEnabled.set(true)"
-                [class]="
-                  shuffleEnabled()
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-2xl">🔀</span>
-                <span class="text-sm">Nasumično</span>
-              </button>
-
-              <button
-                type="button"
-                (click)="shuffleEnabled.set(false)"
-                [class]="
-                  !shuffleEnabled()
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-2xl">📋</span>
-                <span class="text-sm">Po redu</span>
-              </button>
-            </div>
-          </div>
+          <!-- Shuffle Selector -->
+          <app-shuffle-selector
+            [shuffled]="shuffleEnabled()"
+            (shuffledChange)="handleShuffleChange($event)"
+          />
 
           <!-- Lista -->
           <div class="space-y-1">
@@ -113,122 +37,12 @@
             />
           </div>
 
-          <!-- Filter reči -->
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Filter reči</label>
-            <div class="grid grid-cols-2 gap-3">
-              <!-- Sve reči -->
-              <button
-                type="button"
-                (click)="selectedFilter.set('all')"
-                [class]="
-                  selectedFilter() === 'all'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-              >
-                <span class="text-xl">📚</span>
-                <span class="text-sm">Sve reči</span>
-                <span
-                  class="text-xs font-bold px-2 py-0.5 rounded-full"
-                  [class]="
-                    selectedFilter() === 'all'
-                      ? 'bg-primary-100 text-primary-700'
-                      : 'bg-gray-100 text-gray-500'
-                  "
-                >
-                  {{ filterCounts().all }}
-                </span>
-              </button>
-
-              <!-- Najslabije -->
-              <button
-                type="button"
-                (click)="selectedFilter.set('weakest')"
-                [class]="
-                  selectedFilter() === 'weakest'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : filterCounts().weakest === 0
-                      ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 font-medium cursor-not-allowed transition-all'
-                      : 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-                [disabled]="filterCounts().weakest === 0"
-              >
-                <span class="text-xl">📉</span>
-                <span class="text-sm">Najslabije</span>
-                <span
-                  class="text-xs font-bold px-2 py-0.5 rounded-full"
-                  [class]="
-                    selectedFilter() === 'weakest'
-                      ? 'bg-primary-100 text-primary-700'
-                      : filterCounts().weakest === 0
-                        ? 'bg-gray-100 text-gray-400'
-                        : 'bg-red-100 text-red-600'
-                  "
-                >
-                  {{ filterCounts().weakest }}
-                </span>
-              </button>
-
-              <!-- Zaboravljene -->
-              <button
-                type="button"
-                (click)="selectedFilter.set('forgotten')"
-                [class]="
-                  selectedFilter() === 'forgotten'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : filterCounts().forgotten === 0
-                      ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 font-medium cursor-not-allowed transition-all'
-                      : 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-                [disabled]="filterCounts().forgotten === 0"
-              >
-                <span class="text-xl">🕰️</span>
-                <span class="text-sm">Zaboravljene</span>
-                <span
-                  class="text-xs font-bold px-2 py-0.5 rounded-full"
-                  [class]="
-                    selectedFilter() === 'forgotten'
-                      ? 'bg-primary-100 text-primary-700'
-                      : filterCounts().forgotten === 0
-                        ? 'bg-gray-100 text-gray-400'
-                        : 'bg-orange-100 text-orange-600'
-                  "
-                >
-                  {{ filterCounts().forgotten }}
-                </span>
-              </button>
-
-              <!-- Nove -->
-              <button
-                type="button"
-                (click)="selectedFilter.set('new')"
-                [class]="
-                  selectedFilter() === 'new'
-                    ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50 text-primary-700 font-semibold transition-all shadow-sm'
-                    : filterCounts().new === 0
-                      ? 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 font-medium cursor-not-allowed transition-all'
-                      : 'flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
-                "
-                [disabled]="filterCounts().new === 0"
-              >
-                <span class="text-xl">✨</span>
-                <span class="text-sm">Nove</span>
-                <span
-                  class="text-xs font-bold px-2 py-0.5 rounded-full"
-                  [class]="
-                    selectedFilter() === 'new'
-                      ? 'bg-primary-100 text-primary-700'
-                      : filterCounts().new === 0
-                        ? 'bg-gray-100 text-gray-400'
-                        : 'bg-green-100 text-green-600'
-                  "
-                >
-                  {{ filterCounts().new }}
-                </span>
-              </button>
-            </div>
-          </div>
+          <!-- Filter Selector -->
+          <app-filter-selector
+            [selected]="selectedFilter()"
+            [options]="filterOptions()"
+            (selectedChange)="handleFilterChange($event)"
+          />
 
           <!-- Dugme -->
           <div class="pt-2">

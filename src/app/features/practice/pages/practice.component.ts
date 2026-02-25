@@ -14,6 +14,13 @@ import { CustomCardComponent } from '@shared/card/custom-card';
 import { SelectOption } from '@shared/select/custom-select.types';
 import { FlipCardPracticeComponent } from '../components/flip-card-practice/flip-card-practice.component';
 import { QuizPracticeComponent } from '../components/quiz-practice/quiz-practice.component';
+import { DirectionSelectorComponent } from '../components/direction-selector/direction-selector.component';
+import { PracticeTypeSelectorComponent } from '../components/practice-type-selector/practice-type-selector.component';
+import { ShuffleSelectorComponent } from '../components/shuffle-selector/shuffle-selector.component';
+import {
+  FilterSelectorComponent,
+  FilterOption,
+} from '../components/filter-selector/filter-selector.component';
 
 type PracticeState = 'setup' | 'practicing' | 'results';
 type PracticeDirection = 'source-target' | 'target-source';
@@ -30,6 +37,10 @@ type WordFilter = 'all' | 'weakest' | 'forgotten' | 'new';
     CustomSelectComponent,
     FlipCardPracticeComponent,
     QuizPracticeComponent,
+    DirectionSelectorComponent,
+    PracticeTypeSelectorComponent,
+    ShuffleSelectorComponent,
+    FilterSelectorComponent,
   ],
   templateUrl: './practice.component.html',
 })
@@ -101,6 +112,41 @@ export class PracticeComponent {
     };
   });
 
+  public readonly filterOptions = computed<FilterOption[]>(() => [
+    {
+      value: 'all',
+      label: 'Sve reči',
+      icon: '📚',
+      count: this.filterCounts().all,
+      disabled: false,
+      color: 'gray',
+    },
+    {
+      value: 'weakest',
+      label: 'Najslabije',
+      icon: '📉',
+      count: this.filterCounts().weakest,
+      disabled: this.filterCounts().weakest === 0,
+      color: 'red',
+    },
+    {
+      value: 'forgotten',
+      label: 'Zaboravljene',
+      icon: '🕰️',
+      count: this.filterCounts().forgotten,
+      disabled: this.filterCounts().forgotten === 0,
+      color: 'orange',
+    },
+    {
+      value: 'new',
+      label: 'Nove',
+      icon: '✨',
+      count: this.filterCounts().new,
+      disabled: this.filterCounts().new === 0,
+      color: 'green',
+    },
+  ]);
+
   public readonly availableWords = computed(() => {
     const words = this.listFilteredWords();
     const progressKey = this.getProgressKey(this.selectedMode());
@@ -163,6 +209,22 @@ export class PracticeComponent {
     this.practiceWords.set(orderedWords);
     this.sessionResults.set([]);
     this.state.set('practicing');
+  }
+
+  public handleDirectionChange(direction: string): void {
+    this.selectedDirection.set(direction as PracticeDirection);
+  }
+
+  public handleTypeChange(type: string): void {
+    this.selectedType.set(type as PracticeType);
+  }
+
+  public handleShuffleChange(shuffled: boolean): void {
+    this.shuffleEnabled.set(shuffled);
+  }
+
+  public handleFilterChange(filter: string): void {
+    this.selectedFilter.set(filter as WordFilter);
   }
 
   public async handlePracticeFinished(results: PracticeResult[]): Promise<void> {

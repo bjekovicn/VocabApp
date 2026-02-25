@@ -4,5 +4,21 @@
   [class]="getButtonClasses()"
   (click)="handleClick($event)"
 >
-  <ng-content></ng-content>
+  <div class="flex flex-col items-center justify-center gap-1">
+    @if (topIcon()) {
+      <span class="text-lg md:text-xl">{{ topIcon() }}</span>
+    }
+    <div class="flex items-center justify-center gap-2">
+      @if (leftIcon()) {
+        <span class="text-lg md:text-xl">{{ leftIcon() }}</span>
+      }
+      <ng-content></ng-content>
+      @if (rightIcon()) {
+        <span class="text-lg md:text-xl">{{ rightIcon() }}</span>
+      }
+    </div>
+    @if (bottomIcon()) {
+      <span class="text-lg md:text-xl">{{ bottomIcon() }}</span>
+    }
+  </div>
 </button>

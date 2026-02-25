@@ -1,0 +1,129 @@
+<div class="min-h-screen bg-gray-50 py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <app-custom-card>
+      <h1 class="text-3xl font-bold text-gray-900 mb-6">📥 Importuj Reči</h1>
+
+      <div class="space-y-6">
+        <!-- IMPORT MODE SWITCH -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Način Importa</label>
+          <app-mode-switch
+            [selectedValue]="importMode()"
+            [options]="importModeOptions()"
+            (valueChange)="handleImportModeChange($event)"
+          />
+        </div>
+
+        <!-- LIST MODE SWITCH -->
+        <div class="bg-gray-100 rounded-lg p-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Lista</label>
+          <app-mode-switch
+            [selectedValue]="listMode()"
+            [options]="listModeOptions()"
+            (valueChange)="handleListModeChange($event)"
+          />
+        </div>
+
+        @if (listMode() === 'existing') {
+          <app-existing-list-selector
+            [selectedListId]="selectedListId()"
+            [listOptions]="listOptions()"
+            (selectedListIdChange)="selectedListId.set($event)"
+          />
+        }
+
+        @if (listMode() === 'new') {
+          <app-new-list-creator
+            [name]="newListName()"
+            [sourceLanguage]="newListSourceLang()"
+            [targetLanguage]="newListTargetLang()"
+            [languageOptions]="languageOptions()"
+            (nameChange)="newListName.set($event)"
+            (sourceLanguageChange)="newListSourceLang.set($event)"
+            (targetLanguageChange)="newListTargetLang.set($event)"
+          />
+        }
+
+        <!-- FILE UPLOAD -->
+        @if (importMode() === 'file') {
+          <app-file-upload
+            [selectedFile]="selectedFile()"
+            (fileSelected)="handleFileSelected($event)"
+          />
+        }
+
+        <!-- TOPIC DESCRIPTION -->
+        @if (importMode() === 'paste') {
+          <div class="mt-8">
+            <app-custom-input
+              label="Tema za AI Generisanje"
+              placeholder="npr. Osnovni glagoli kretanja, Hrana u restoranu, Poslovna terminologija..."
+              hint="Ova tema će se koristiti u AI promptu za generisanje odgovarajućih reči"
+              [value]="topicDescription()"
+              (valueChange)="topicDescription.set($event)"
+            />
+          </div>
+        }
+
+        <!-- AI PROMPT BOX -->
+        @if (showPrompt()) {
+          <app-ai-prompt-box
+            [topic]="topicDescription()"
+            [prompt]="aiFullPrompt()"
+            [copied]="promptCopied()"
+            [pastedJson]="pastedJson()"
+            (copyPrompt)="copyFullPrompt()"
+            (jsonChange)="pastedJson.set($event)"
+          />
+        }
+
+        <!-- ERRORS -->
+        @if (errors().length > 0) {
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <ul class="list-disc list-inside text-sm text-red-700">
+              @for (error of errors(); track $index) {
+                <li>{{ error }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- SUCCESS -->
+        @if (successCount() > 0) {
+          <div
+            class="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800 text-sm font-semibold"
+          >
+            ✅ Uspešno importovano {{ successCount() }} reči!
+          </div>
+        }
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex gap-4 pt-4">
+          <app-custom-button
+            variant="primary"
+            [fullWidth]="true"
+            [disabled]="!canImport()"
+            (clicked)="handleImport()"
+            [rightIcon]="isImporting() ? '...' : '✓'"
+          >
+            @if (isImporting()) {
+              Importovanje...
+            } @else {
+              Importuj Reči
+            }
+          </app-custom-button>
+
+          <app-custom-button
+            variant="secondary"
+            [fullWidth]="true"
+            [disabled]="isImporting()"
+            (clicked)="handleCancel()"
+            [leftIcon]="'✕'"
+          >
+            Otkaži
+          </app-custom-button>
+        </div>
+      </div>
+    </app-custom-card>
+  </div>
+</div>

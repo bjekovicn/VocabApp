@@ -13,7 +13,7 @@ import { SelectOption } from '@shared/select/custom-select.types';
 import { WordProgressBadgesComponent } from 'src/app/components/progress-badges/word-progress-badges.component';
 
 @Component({
-  selector: 'app-word-list-page',
+  selector: 'app-view-word-list-page',
   standalone: true,
   imports: [
     CommonModule,
@@ -22,9 +22,9 @@ import { WordProgressBadgesComponent } from 'src/app/components/progress-badges/
     CustomSelectComponent,
     WordProgressBadgesComponent,
   ],
-  templateUrl: './word-list.component.html',
+  templateUrl: './view-word-list.component.html',
 })
-export class WordListComponent {
+export class ViewWordListComponent {
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);

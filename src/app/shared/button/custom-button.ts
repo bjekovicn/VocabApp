@@ -10,6 +10,10 @@ export class CustomButtonComponent {
   public readonly type = input<'button' | 'submit' | 'reset'>('button');
   public readonly disabled = input<boolean>(false);
   public readonly fullWidth = input<boolean>(false);
+  public readonly topIcon = input<string | null>(null);
+  public readonly bottomIcon = input<string | null>(null);
+  public readonly leftIcon = input<string | null>(null);
+  public readonly rightIcon = input<string | null>(null);
   public readonly clicked = output<MouseEvent>();
 
   public handleClick(event: MouseEvent): void {

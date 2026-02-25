@@ -1,0 +1,26 @@
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-2">Način Importa</label>
+  <div class="flex gap-4">
+    <app-custom-button
+      variant="primary"
+      [fullWidth]="true"
+      [class.opacity-50]="mode() !== 'paste'"
+      [class.bg-blue-200]="mode() !== 'paste'"
+      (clicked)="modeChange.emit('paste')"
+      [leftIcon]="'📋'"
+    >
+      Nalepi AI odgovor
+    </app-custom-button>
+
+    <app-custom-button
+      variant="primary"
+      [fullWidth]="true"
+      [class.opacity-50]="mode() !== 'file'"
+      [class.bg-blue-200]="mode() !== 'file'"
+      (clicked)="modeChange.emit('file')"
+      [leftIcon]="'📁'"
+    >
+      Upload Fajl
+    </app-custom-button>
+  </div>
+</div>

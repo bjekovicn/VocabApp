@@ -1,49 +1,35 @@
 import { Injectable } from '@angular/core';
-import {
-  ImportService,
-  ImportFileData,
-  ImportWordData,
-} from '@core/services/abstractions/import.service';
+import { ImportService } from '@core/services/abstractions/import.service';
+import { ImportFileData } from '@core/models/import.model';
 import { CreateWordDto } from '@core/models/word.model';
 import { LanguagePair } from '@core/models/language.model';
+import { ImportFileSchema } from '../../schemas/import.schema';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class JsonImportService extends ImportService {
-  public async parseJsonFile(file: File): Promise<ImportFileData> {
-    const text = await file.text();
-    const data = JSON.parse(text);
+  public async parseJson(source: File | string): Promise<ImportFileData> {
+    const text = source instanceof File ? await source.text() : source;
 
-    if (!data.words || !Array.isArray(data.words)) {
-      throw new Error('Invalid JSON format: missing "words" array');
+    let raw: unknown;
+    try {
+      raw = JSON.parse(text);
+    } catch {
+      throw new Error('Nevažeći JSON format — provjeri zagrade i zareze');
     }
 
-    return data as ImportFileData;
-  }
+    const result = ImportFileSchema.safeParse(raw);
 
-  public validateImportData(data: ImportFileData): string[] {
-    const errors: string[] = [];
+    if (!result.success) {
+      const messages = result.error.issues.map((e) => {
+        const path = e.path
+          .map((p, i) => (typeof p === 'number' ? `[${p}]` : i === 0 ? String(p) : `.${String(p)}`))
+          .join('');
+        return `${path}: ${e.message}`;
+      });
+      throw new Error(`Nevažeći import fajl:\n${messages.join('\n')}`);
+    }
 
-    data.words.forEach((word, index) => {
-      if (!word.sourceText || word.sourceText.trim() === '') {
-        errors.push(`Word ${index + 1}: missing sourceText`);
-      }
-      if (!word.targetText || word.targetText.trim() === '') {
-        errors.push(`Word ${index + 1}: missing targetText`);
-      }
-      if (!word.category) {
-        errors.push(`Word ${index + 1}: missing category`);
-      }
-      if (!word.quizDistractorsSourceToTarget || word.quizDistractorsSourceToTarget.length !== 2) {
-        errors.push(`Word ${index + 1}: quizDistractorsSourceToTarget must have exactly 2 items`);
-      }
-      if (!word.quizDistractorsTargetToSource || word.quizDistractorsTargetToSource.length !== 2) {
-        errors.push(`Word ${index + 1}: quizDistractorsTargetToSource must have exactly 2 items`);
-      }
-    });
-
-    return errors;
+    return result.data;
   }
 
   public convertToCreateDtos(
@@ -55,6 +41,7 @@ export class JsonImportService extends ImportService {
       sourceText: word.sourceText,
       targetText: word.targetText,
       category: word.category,
+      note: word.note,
       listId,
       languagePair,
       quizDistractorsSourceToTarget: word.quizDistractorsSourceToTarget,

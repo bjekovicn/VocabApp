@@ -1,0 +1,35 @@
+<div class="mt-8">
+  <div class="mb-6">
+    <app-custom-input
+      label="Naziv Liste"
+      placeholder="npr. Osnovne Reči, Putovanje, Posao..."
+      [value]="name()"
+      (valueChange)="nameChange.emit($event)"
+      [required]="true"
+    />
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <app-custom-select
+        label="Jezik koji učiš"
+        placeholder="Izaberi jezik"
+        [options]="languageOptions()"
+        [required]="true"
+        [value]="sourceLanguage()"
+        (valueChange)="sourceLanguageChange.emit($event!)"
+      />
+    </div>
+
+    <div>
+      <app-custom-select
+        label="Tvoj jezik"
+        placeholder="Izaberi jezik"
+        [options]="languageOptions()"
+        [required]="true"
+        [value]="targetLanguage()"
+        (valueChange)="targetLanguageChange.emit($event!)"
+      />
+    </div>
+  </div>
+</div>

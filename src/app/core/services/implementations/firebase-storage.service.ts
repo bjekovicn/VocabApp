@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { initializeApp, FirebaseApp } from 'firebase/app';
 import {
   getFirestore,
   Firestore,
@@ -11,399 +10,196 @@ import {
   query,
   where,
   Timestamp,
-  onSnapshot,
   writeBatch,
+  getDocs,
 } from 'firebase/firestore';
-import { getAuth, Auth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, Auth } from 'firebase/auth';
 import { Observable } from 'rxjs';
+
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { Word, CreateWordDto } from '@core/models/word.model';
 import { WordList, CreateWordListDto } from '@core/models/word-list.model';
 import { createDefaultProgress } from '@core/models/spaced-repetition.model';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class FirebaseStorageService extends StorageService {
-  private readonly firestore: Firestore;
-  private readonly auth: Auth;
-  private currentUserId: string | null = null;
+import { collection$, doc$ } from '@core/utils/firestore.util';
+import { wordConverter, progressToFirestore } from '@core/converters/word.converter';
+import { wordListConverter } from '@core/converters/word-list.converter';
 
-  constructor() {
-    super();
-    this.firestore = getFirestore();
-    this.auth = getAuth();
-    this.currentUserId = this.auth.currentUser?.uid || null;
-  }
+@Injectable({ providedIn: 'root' })
+export class FirebaseStorageService extends StorageService {
+  private readonly db: Firestore = getFirestore();
+  private readonly auth: Auth = getAuth();
+
+  // ─── Auth ────────────────────────────────────────────────────────────────────
 
   public getCurrentUserId(): string | null {
-    return this.currentUserId;
+    return this.auth.currentUser?.uid ?? null;
   }
 
-  // Word Lists Methods
+  private get uid(): string {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) throw new Error('User not authenticated');
+    return uid;
+  }
+
+  // ─── Collection refs (with converters) ───────────────────────────────────────
+
+  private wordsRef() {
+    return collection(this.db, `users/${this.uid}/words`).withConverter(wordConverter);
+  }
+
+  private wordListsRef() {
+    return collection(this.db, `users/${this.uid}/wordLists`).withConverter(wordListConverter);
+  }
+
+  private wordDocRef(id: string) {
+    return doc(this.db, `users/${this.uid}/words/${id}`).withConverter(wordConverter);
+  }
+
+  private wordListDocRef(id: string) {
+    return doc(this.db, `users/${this.uid}/wordLists/${id}`).withConverter(wordListConverter);
+  }
+
+  // ─── Word Lists ───────────────────────────────────────────────────────────────
+
   public getWordLists(): Observable<WordList[]> {
-    return new Observable((observer) => {
-      if (!this.currentUserId) {
-        observer.error('User not authenticated');
-        return;
-      }
-
-      const listsRef = collection(this.firestore, `users/${this.currentUserId}/wordLists`);
-
-      const unsubscribe = onSnapshot(
-        listsRef,
-        (snapshot) => {
-          const lists: WordList[] = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data['name'],
-              description: data['description'],
-              languagePair: data['languagePair'],
-              createdAt: data['createdAt']?.toDate() || new Date(),
-              updatedAt: data['updatedAt']?.toDate() || new Date(),
-            };
-          });
-          observer.next(lists);
-        },
-        (error) => observer.error(error),
-      );
-
-      return () => unsubscribe();
-    });
+    return collection$<WordList>(this.wordListsRef());
   }
 
   public getWordListById(id: string): Observable<WordList | null> {
-    return new Observable((observer) => {
-      if (!this.currentUserId) {
-        observer.error('User not authenticated');
-        return;
-      }
-
-      const listRef = doc(this.firestore, `users/${this.currentUserId}/wordLists/${id}`);
-
-      const unsubscribe = onSnapshot(
-        listRef,
-        (snapshot) => {
-          if (!snapshot.exists()) {
-            observer.next(null);
-            return;
-          }
-
-          const data = snapshot.data();
-          const list: WordList = {
-            id: snapshot.id,
-            name: data['name'],
-            languagePair: data['languagePair'],
-            createdAt: data['createdAt']?.toDate() || new Date(),
-            updatedAt: data['updatedAt']?.toDate() || new Date(),
-          };
-          observer.next(list);
-        },
-        (error) => observer.error(error),
-      );
-
-      return () => unsubscribe();
-    });
+    return doc$<WordList>(this.wordListDocRef(id));
   }
 
   public async createWordList(dto: CreateWordListDto): Promise<string> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    const listsRef = collection(this.firestore, `users/${this.currentUserId}/wordLists`);
-    const now = Timestamp.now();
-
-    const docRef = await addDoc(listsRef, {
+    const now = Timestamp.now().toDate();
+    const ref = await addDoc(this.wordListsRef(), {
       name: dto.name,
       languagePair: dto.languagePair,
       createdAt: now,
       updatedAt: now,
-      note: dto.note,
-    });
-
-    return docRef.id;
+    } as any);
+    return ref.id;
   }
 
   public async updateWordList(id: string, updates: Partial<WordList>): Promise<void> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    const listRef = doc(this.firestore, `users/${this.currentUserId}/wordLists/${id}`);
-    await updateDoc(listRef, {
+    await updateDoc(this.wordListDocRef(id), {
       ...updates,
-      updatedAt: Timestamp.now(),
-    });
+      updatedAt: Timestamp.now().toDate(),
+    } as any);
   }
 
-  // Words Methods
+  // ─── Words ────────────────────────────────────────────────────────────────────
+
   public getWords(): Observable<Word[]> {
-    return new Observable((observer) => {
-      if (!this.currentUserId) {
-        observer.error('User not authenticated');
-        return;
-      }
-
-      const wordsRef = collection(this.firestore, `users/${this.currentUserId}/words`);
-
-      const unsubscribe = onSnapshot(
-        wordsRef,
-        (snapshot) => {
-          const words: Word[] = snapshot.docs.map((doc) => this.mapDocToWord(doc.id, doc.data()));
-          observer.next(words);
-        },
-        (error) => observer.error(error),
-      );
-
-      return () => unsubscribe();
-    });
+    return collection$<Word>(this.wordsRef());
   }
 
   public getWordsByListId(listId: string): Observable<Word[]> {
-    return new Observable((observer) => {
-      if (!this.currentUserId) {
-        observer.error('User not authenticated');
-        return;
-      }
-
-      const wordsRef = collection(this.firestore, `users/${this.currentUserId}/words`);
-      const q = query(wordsRef, where('listId', '==', listId));
-
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const words: Word[] = snapshot.docs.map((doc) => this.mapDocToWord(doc.id, doc.data()));
-          observer.next(words);
-        },
-        (error) => observer.error(error),
-      );
-
-      return () => unsubscribe();
-    });
+    const q = query(this.wordsRef(), where('listId', '==', listId));
+    return collection$<Word>(q);
   }
 
   public getWordById(id: string): Observable<Word | null> {
-    return new Observable((observer) => {
-      if (!this.currentUserId) {
-        observer.error('User not authenticated');
-        return;
-      }
-
-      const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${id}`);
-
-      const unsubscribe = onSnapshot(
-        wordRef,
-        (snapshot) => {
-          if (!snapshot.exists()) {
-            observer.next(null);
-            return;
-          }
-
-          const word = this.mapDocToWord(snapshot.id, snapshot.data());
-          observer.next(word);
-        },
-        (error) => observer.error(error),
-      );
-
-      return () => unsubscribe();
-    });
+    return doc$<Word>(this.wordDocRef(id));
   }
 
   public async createWord(dto: CreateWordDto): Promise<string> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    const wordsRef = collection(this.firestore, `users/${this.currentUserId}/words`);
-    const now = Timestamp.now();
+    const now = new Date();
     const defaultProgress = createDefaultProgress();
 
-    const docRef = await addDoc(wordsRef, {
+    const ref = await addDoc(this.wordsRef(), {
       sourceText: dto.sourceText,
       targetText: dto.targetText,
       category: dto.category,
       listId: dto.listId,
       languagePair: dto.languagePair,
+      note: dto.note ?? null,
       quizDistractorsSourceToTarget: dto.quizDistractorsSourceToTarget,
       quizDistractorsTargetToSource: dto.quizDistractorsTargetToSource,
-      flipCardSourceToTarget: this.progressToFirestore(defaultProgress),
-      flipCardTargetToSource: this.progressToFirestore(defaultProgress),
-      quizSourceToTarget: this.progressToFirestore(defaultProgress),
-      quizTargetToSource: this.progressToFirestore(defaultProgress),
+      flipCardSourceToTarget: defaultProgress,
+      flipCardTargetToSource: defaultProgress,
+      quizSourceToTarget: defaultProgress,
+      quizTargetToSource: defaultProgress,
       createdAt: now,
       updatedAt: now,
-    });
-
-    return docRef.id;
+    } as any);
+    return ref.id;
   }
 
   public async updateWord(id: string, updates: Partial<Word>): Promise<void> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
+    // Progress polja moraju biti konvertovana u Firestore Timestamp format
+    const firestoreUpdates: any = { updatedAt: Timestamp.now() };
+
+    for (const [key, value] of Object.entries(updates)) {
+      const progressKeys = [
+        'flipCardSourceToTarget',
+        'flipCardTargetToSource',
+        'quizSourceToTarget',
+        'quizTargetToSource',
+      ];
+      if (progressKeys.includes(key) && value) {
+        firestoreUpdates[key] = progressToFirestore(value as any);
+      } else {
+        firestoreUpdates[key] = value;
+      }
     }
 
-    const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${id}`);
-    const updateData: any = { ...updates, updatedAt: Timestamp.now() };
-
-    // Convert progress objects to Firestore format
-    if (updates.flipCardSourceToTarget) {
-      updateData.flipCardSourceToTarget = this.progressToFirestore(updates.flipCardSourceToTarget);
-    }
-    if (updates.flipCardTargetToSource) {
-      updateData.flipCardTargetToSource = this.progressToFirestore(updates.flipCardTargetToSource);
-    }
-    if (updates.quizSourceToTarget) {
-      updateData.quizSourceToTarget = this.progressToFirestore(updates.quizSourceToTarget);
-    }
-    if (updates.quizTargetToSource) {
-      updateData.quizTargetToSource = this.progressToFirestore(updates.quizTargetToSource);
-    }
-
-    await updateDoc(wordRef, updateData);
+    await updateDoc(this.wordDocRef(id), firestoreUpdates);
   }
 
   public async deleteWord(id: string): Promise<void> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${id}`);
-    await deleteDoc(wordRef);
+    await deleteDoc(this.wordDocRef(id));
   }
 
-  // Helper Methods
-  private mapDocToWord(id: string, data: any): Word {
-    return {
-      id,
-      sourceText: data['sourceText'],
-      targetText: data['targetText'],
-      category: data['category'],
-      listId: data['listId'],
-      languagePair: data['languagePair'],
-      note: data['note'] || undefined,
-      quizDistractorsSourceToTarget: data['quizDistractorsSourceToTarget'] || [],
-      quizDistractorsTargetToSource: data['quizDistractorsTargetToSource'] || [],
-      flipCardSourceToTarget: this.firestoreToProgress(
-        data['flipCardSourceToTarget'] || data['flipCard'],
-      ),
-      flipCardTargetToSource: this.firestoreToProgress(
-        data['flipCardTargetToSource'] || data['flipCard'],
-      ),
-      quizSourceToTarget: this.firestoreToProgress(data['quizSourceToTarget']),
-      quizTargetToSource: this.firestoreToProgress(data['quizTargetToSource']),
-      createdAt: data['createdAt']?.toDate() || new Date(),
-      updatedAt: data['updatedAt']?.toDate() || new Date(),
-    };
-  }
-
-  private progressToFirestore(progress: any): any {
-    return {
-      repetitions: progress.repetitions,
-      easeFactor: progress.easeFactor,
-      nextReview: Timestamp.fromDate(new Date(progress.nextReview)),
-      lastReview: progress.lastReview ? Timestamp.fromDate(new Date(progress.lastReview)) : null,
-      correctCount: progress.correctCount,
-      incorrectCount: progress.incorrectCount,
-    };
-  }
-
-  private firestoreToProgress(data: any): any {
-    return {
-      repetitions: data?.repetitions || 0,
-      easeFactor: data?.easeFactor || 2.5,
-      nextReview: data?.nextReview?.toDate() || new Date(),
-      lastReview: data?.lastReview?.toDate() || null,
-      correctCount: data?.correctCount || 0,
-      incorrectCount: data?.incorrectCount || 0,
-    };
-  }
-
-  private async getWordsSnapshot(listId: string): Promise<Word[]> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    const wordsRef = collection(this.firestore, `users/${this.currentUserId}/words`);
-    const q = query(wordsRef, where('listId', '==', listId));
-
-    return new Promise((resolve, reject) => {
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const words: Word[] = snapshot.docs.map((doc) => this.mapDocToWord(doc.id, doc.data()));
-          unsubscribe();
-          resolve(words);
-        },
-        (error) => reject(error),
-      );
-    });
-  }
+  // ─── Batch operacije ──────────────────────────────────────────────────────────
 
   public async batchUpdateWords(
     updates: Array<{ id: string; data: Partial<Word> }>,
   ): Promise<void> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
     if (updates.length === 0) return;
 
-    // Firestore batch može max 500 operacija
     const BATCH_SIZE = 500;
-    const batches: any[] = [];
 
     for (let i = 0; i < updates.length; i += BATCH_SIZE) {
-      const batch = writeBatch(this.firestore);
+      const batch = writeBatch(this.db);
       const chunk = updates.slice(i, i + BATCH_SIZE);
 
-      chunk.forEach(({ id, data }) => {
-        const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${id}`);
-        const updateData: any = { ...data, updatedAt: Timestamp.now() };
+      for (const { id, data } of chunk) {
+        const firestoreData: any = { updatedAt: Timestamp.now() };
+        const progressKeys = [
+          'flipCardSourceToTarget',
+          'flipCardTargetToSource',
+          'quizSourceToTarget',
+          'quizTargetToSource',
+        ];
 
-        // Convert progress objects to Firestore format
-        if (data.flipCardSourceToTarget) {
-          updateData.flipCardSourceToTarget = this.progressToFirestore(data.flipCardSourceToTarget);
-        }
-        if (data.flipCardTargetToSource) {
-          updateData.flipCardTargetToSource = this.progressToFirestore(data.flipCardTargetToSource);
-        }
-        if (data.quizSourceToTarget) {
-          updateData.quizSourceToTarget = this.progressToFirestore(data.quizSourceToTarget);
-        }
-        if (data.quizTargetToSource) {
-          updateData.quizTargetToSource = this.progressToFirestore(data.quizTargetToSource);
+        for (const [key, value] of Object.entries(data)) {
+          firestoreData[key] =
+            progressKeys.includes(key) && value ? progressToFirestore(value as any) : value;
         }
 
-        batch.update(wordRef, updateData);
-      });
+        batch.update(doc(this.db, `users/${this.uid}/words/${id}`), firestoreData);
+      }
 
-      batches.push(batch.commit());
+      await batch.commit();
     }
-
-    await Promise.all(batches);
   }
 
   public async batchCreateWords(dtos: CreateWordDto[]): Promise<string[]> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
     if (dtos.length === 0) return [];
 
     const BATCH_SIZE = 500;
     const createdIds: string[] = [];
+    const now = Timestamp.now();
+    const defaultProgress = createDefaultProgress();
 
     for (let i = 0; i < dtos.length; i += BATCH_SIZE) {
-      const batch = writeBatch(this.firestore);
+      const batch = writeBatch(this.db);
       const chunk = dtos.slice(i, i + BATCH_SIZE);
 
-      chunk.forEach((dto) => {
-        const wordsRef = collection(this.firestore, `users/${this.currentUserId}/words`);
-        const newDocRef = doc(wordsRef);
-        const now = Timestamp.now();
-        const defaultProgress = createDefaultProgress();
+      for (const dto of chunk) {
+        const newDocRef = doc(this.wordsRef());
+        createdIds.push(newDocRef.id);
 
         batch.set(newDocRef, {
           sourceText: dto.sourceText,
@@ -411,18 +207,17 @@ export class FirebaseStorageService extends StorageService {
           category: dto.category,
           listId: dto.listId,
           languagePair: dto.languagePair,
+          note: dto.note ?? null,
           quizDistractorsSourceToTarget: dto.quizDistractorsSourceToTarget,
           quizDistractorsTargetToSource: dto.quizDistractorsTargetToSource,
-          flipCardSourceToTarget: this.progressToFirestore(defaultProgress),
-          flipCardTargetToSource: this.progressToFirestore(defaultProgress),
-          quizSourceToTarget: this.progressToFirestore(defaultProgress),
-          quizTargetToSource: this.progressToFirestore(defaultProgress),
-          createdAt: now,
-          updatedAt: now,
-        });
-
-        createdIds.push(newDocRef.id);
-      });
+          flipCardSourceToTarget: defaultProgress,
+          flipCardTargetToSource: defaultProgress,
+          quizSourceToTarget: defaultProgress,
+          quizTargetToSource: defaultProgress,
+          createdAt: now.toDate(),
+          updatedAt: now.toDate(),
+        } as any);
+      }
 
       await batch.commit();
     }
@@ -431,30 +226,21 @@ export class FirebaseStorageService extends StorageService {
   }
 
   public async deleteWordListWithWords(listId: string): Promise<void> {
-    if (!this.currentUserId) {
-      throw new Error('User not authenticated');
-    }
-
-    // Get all words for this list
-    const words = await this.getWordsSnapshot(listId);
-
-    // Create batch for deletion
     const BATCH_SIZE = 500;
 
-    for (let i = 0; i < words.length; i += BATCH_SIZE) {
-      const batch = writeBatch(this.firestore);
-      const chunk = words.slice(i, i + BATCH_SIZE);
+    // Dohvati sve wordsove za listu
+    const q = query(collection(this.db, `users/${this.uid}/words`), where('listId', '==', listId));
+    const snapshot = await getDocs(q);
+    const wordDocs = snapshot.docs;
 
-      chunk.forEach((word) => {
-        const wordRef = doc(this.firestore, `users/${this.currentUserId}/words/${word.id}`);
-        batch.delete(wordRef);
-      });
-
+    // Briši wordove u batchevima
+    for (let i = 0; i < wordDocs.length; i += BATCH_SIZE) {
+      const batch = writeBatch(this.db);
+      wordDocs.slice(i, i + BATCH_SIZE).forEach((d) => batch.delete(d.ref));
       await batch.commit();
     }
 
-    // Delete the list itself
-    const listRef = doc(this.firestore, `users/${this.currentUserId}/wordLists/${listId}`);
-    await deleteDoc(listRef);
+    // Briši listu
+    await deleteDoc(this.wordListDocRef(listId));
   }
 }

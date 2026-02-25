@@ -1,0 +1,10 @@
+<div class="mt-8">
+  <app-custom-select
+    label="Ciljana Lista"
+    placeholder="Izaberi listu"
+    [options]="listOptions()"
+    [required]="true"
+    [value]="selectedListId()"
+    (valueChange)="selectedListIdChange.emit($event!)"
+  />
+</div>

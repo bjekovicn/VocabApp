@@ -1,0 +1,61 @@
+<div class="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 md:p-6">
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:gap-4">
+    <!-- Ikona -->
+    <div class="text-3xl md:text-4xl shrink-0 hidden md:block">🤖</div>
+
+    <!-- Sadržaj -->
+    <div class="flex-1">
+      <div class="flex items-center gap-2 md:gap-0 mb-3">
+        <div class="text-2xl md:hidden">🤖</div>
+        <h2 class="text-base md:text-lg font-semibold text-gray-900">Generiši reči pomoću AI-a</h2>
+      </div>
+
+      <div class="space-y-3 text-sm text-gray-700">
+        <p class="font-medium text-gray-900">📝 Koraci:</p>
+        <ol class="list-decimal list-inside space-y-2 ml-2 text-gray-700">
+          <li>
+            Kliknite na dugme
+            <span class="font-semibold text-blue-700">"Kopiraj prompt"</span> ispod
+          </li>
+          <li>Otvorite vaš AI model (Claude, ChatGPT, Gemini...)</li>
+          <li>Nalepite prompt i pošaljite zahtev</li>
+          <li>Kopirajte generisani JSON odgovor</li>
+          <li>Nalepite JSON u polje ispod i kliknite "Importuj"</li>
+        </ol>
+
+        <div
+          class="flex items-center gap-2 text-xs text-gray-600 bg-white rounded-md p-3 mt-4 border border-blue-100"
+        >
+          <span class="text-base md:text-lg shrink-0">💡</span>
+          <span class="wrap-break-word">
+            AI će generisati reči na temu:
+            <strong class="text-blue-700">{{ topic() }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copy Dugme -->
+    <app-custom-button
+      variant="primary"
+      [fullWidth]="true"
+      class="w-full md:w-auto md:shrink-0"
+      [topIcon]="copied() ? '✅' : '📋'"
+      (clicked)="copyPrompt.emit()"
+    >
+      {{ copied() ? 'Kopirano!' : 'Kopiraj prompt' }}
+    </app-custom-button>
+  </div>
+</div>
+
+<!-- PASTE JSON POLJE -->
+<div class="mt-6">
+  <label class="block text-sm font-medium text-gray-700 mb-2"> Nalepi AI odgovor ovde </label>
+  <textarea
+    [value]="pastedJson()"
+    (input)="jsonChange.emit($any($event).target.value)"
+    placeholder='{ "words": [ ... ] }'
+    rows="8"
+    class="block w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-mono focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+  ></textarea>
+</div>

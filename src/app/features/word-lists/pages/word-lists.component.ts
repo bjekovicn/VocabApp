@@ -8,12 +8,12 @@ import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 
 @Component({
-  selector: 'app-list-manager-page',
+  selector: 'app-word-lists-page',
   standalone: true,
   imports: [CommonModule, CustomCardComponent, CustomButtonComponent],
-  templateUrl: './list-manager.component.html',
+  templateUrl: './word-lists.component.html',
 })
-export class ListManagerPage {
+export class WordListsPage {
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
 
@@ -55,7 +55,7 @@ export class ListManagerPage {
   // ================================
 
   public toggleMenu(id: string, event: Event): void {
-    event.stopPropagation(); // sprečava navigaciju na klik kartice
+    event.stopPropagation();
     this.openMenuId.set(this.openMenuId() === id ? null : id);
   }
 

@@ -1,0 +1,35 @@
+<div class="space-y-6">
+  <!-- Quiz Distractors Source to Target -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-3">
+      Quiz - Pogrešni odgovori {{ sourceLanguage() }} → {{ targetLanguage() }}
+    </label>
+    <div class="space-y-2">
+      @for (distractor of sourceToTarget(); track $index) {
+        <app-custom-input
+          [placeholder]="'Pogrešan odgovor ' + ($index + 1)"
+          [value]="distractor"
+          (valueChange)="handleSourceToTargetChange($index, $event)"
+          [required]="true"
+        />
+      }
+    </div>
+  </div>
+
+  <!-- Quiz Distractors Target to Source -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-3">
+      Quiz - Pogrešni odgovori {{ targetLanguage() }} → {{ sourceLanguage() }}
+    </label>
+    <div class="space-y-2">
+      @for (distractor of targetToSource(); track $index) {
+        <app-custom-input
+          [placeholder]="'Pogrešan odgovor ' + ($index + 1)"
+          [value]="distractor"
+          (valueChange)="handleTargetToSourceChange($index, $event)"
+          [required]="true"
+        />
+      }
+    </div>
+  </div>
+</div>
