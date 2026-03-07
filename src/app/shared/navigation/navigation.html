@@ -7,7 +7,7 @@
       </div>
 
       <!-- Desktop Menu -->
-      <div class="hidden md:flex space-x-4">
+      <div class="hidden md:flex items-center space-x-4">
         <a
           routerLink="/"
           routerLinkActive="bg-primary-700"
@@ -48,6 +48,51 @@
         >
           Import
         </a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-3">
+        @if (isAnonymousUser()) {
+          <span class="text-sm text-primary-100">Anonimna sesija</span>
+          <button
+            type="button"
+            (click)="handleGoogleSignIn()"
+            [disabled]="isAuthBusy()"
+            class="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Poveži Google
+          </button>
+        } @else {
+          <div class="flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-2">
+            @if (userPhotoUrl()) {
+              <img
+                [src]="userPhotoUrl()!"
+                [alt]="userLabel()"
+                class="h-9 w-9 rounded-full border border-white/20 object-cover"
+                referrerpolicy="no-referrer"
+              />
+            } @else {
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-primary-500 text-sm font-semibold text-white"
+              >
+                {{ userInitials() }}
+              </div>
+            }
+
+            <div class="min-w-0">
+              <p class="max-w-56 truncate text-sm font-semibold text-white">{{ userLabel() }}</p>
+              <p class="max-w-56 truncate text-xs text-primary-100">{{ userSubLabel() }}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="handleSignOut()"
+            [disabled]="isAuthBusy()"
+            class="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Odjavi se
+          </button>
+        }
       </div>
 
       <!-- Mobile Menu Button -->
@@ -123,7 +168,60 @@
         >
           Import
         </a>
+
+        <div class="border-t border-white/20 pt-3">
+          @if (isAnonymousUser()) {
+            <p class="px-3 pb-2 text-sm text-primary-100">Anonimna sesija</p>
+            <button
+              type="button"
+              (click)="handleGoogleSignIn()"
+              [disabled]="isAuthBusy()"
+              class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Poveži Google
+            </button>
+          } @else {
+            <div class="mx-3 mb-3 flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-3">
+              @if (userPhotoUrl()) {
+                <img
+                  [src]="userPhotoUrl()!"
+                  [alt]="userLabel()"
+                  class="h-10 w-10 rounded-full border border-white/20 object-cover"
+                  referrerpolicy="no-referrer"
+                />
+              } @else {
+                <div
+                  class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-primary-500 text-sm font-semibold text-white"
+                >
+                  {{ userInitials() }}
+                </div>
+              }
+
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-white">{{ userLabel() }}</p>
+                <p class="truncate text-xs text-primary-100">{{ userSubLabel() }}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="handleSignOut()"
+              [disabled]="isAuthBusy()"
+              class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Odjavi se
+            </button>
+          }
+        </div>
       </div>
     }
   </div>
+
+  @if (authError()) {
+    <div class="border-t border-white/20 bg-primary-700/70 px-4 py-3 text-sm text-primary-50">
+      <div class="mx-auto max-w-7xl">
+        {{ authError() }}
+      </div>
+    </div>
+  }
 </nav>
