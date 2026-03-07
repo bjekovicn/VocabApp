@@ -6,7 +6,8 @@
     "build": "npm run config && ng build",
     "generate-env": "node scripts/generate-env.js",
     "start": "npm run generate-env && ng serve",
-    "build:prod": "npm run generate-env && ng build --configuration production"
+    "build:prod": "npm run generate-env && ng build --configuration production",
+    "test": "ng test --watch=false"
   },
   "prettier": {
     "printWidth": 100,
@@ -38,7 +39,6 @@
     "@angular/build": "^21.1.4",
     "@angular/cli": "^21.1.4",
     "@angular/compiler-cli": "^21.1.0",
-    "@angular/fire": "^0.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "autoprefixer": "^10.4.24",
     "jsdom": "^27.1.0",

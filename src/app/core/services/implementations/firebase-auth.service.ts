@@ -1,24 +1,29 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, signal, inject } from '@angular/core';
 import {
   Auth,
   AuthError,
   GoogleAuthProvider,
   User,
+  UserInfo,
   browserLocalPersistence,
   getAuth,
-  getRedirectResult,
-  linkWithRedirect,
+  linkWithPopup,
   onAuthStateChanged,
   setPersistence,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
 } from 'firebase/auth';
+import { Timestamp, doc, getDoc, getFirestore, setDoc } from 'firebase/firestore';
 
+import { UserProfile } from '@core/models/user-profile.model';
 import { AuthService } from '@core/services/abstractions/auth.service';
+import { FirebaseStorageService } from './firebase-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class FirebaseAuthService extends AuthService {
   private readonly auth: Auth = getAuth();
+  private readonly db = getFirestore();
+  private readonly storageService = inject(FirebaseStorageService);
   private readonly _user = signal<User | null>(null);
   private readonly _isReady = signal(false);
   private readonly _isBusy = signal(false);
@@ -29,10 +34,23 @@ export class FirebaseAuthService extends AuthService {
   public readonly isReady = this._isReady.asReadonly();
   public readonly isBusy = this._isBusy.asReadonly();
   public readonly isAuthenticated = computed(() => this.user() !== null);
-  public readonly isAnonymous = computed(() => this.user()?.isAnonymous ?? false);
-  public readonly displayName = computed(() => this.user()?.displayName ?? null);
-  public readonly email = computed(() => this.user()?.email ?? null);
-  public readonly photoUrl = computed(() => this.user()?.photoURL ?? null);
+  public readonly isAnonymous = computed(() => {
+    const user = this.user();
+    if (!user) {
+      return false;
+    }
+
+    return user.isAnonymous || this.getResolvedProviders(user).length === 0;
+  });
+  public readonly displayName = computed(
+    () => this.user()?.displayName ?? this.getPrimaryProviderProfile(this.user())?.displayName ?? null,
+  );
+  public readonly email = computed(
+    () => this.user()?.email ?? this.getPrimaryProviderProfile(this.user())?.email ?? null,
+  );
+  public readonly photoUrl = computed(
+    () => this.user()?.photoURL ?? this.getPrimaryProviderProfile(this.user())?.photoURL ?? null,
+  );
   public readonly errorMessage = this._errorMessage.asReadonly();
 
   public constructor() {
@@ -43,6 +61,10 @@ export class FirebaseAuthService extends AuthService {
 
       onAuthStateChanged(this.auth, (user) => {
         this._user.set(user);
+
+        if (user) {
+          void this.syncUserProfile(user);
+        }
 
         if (isFirstEmission) {
           isFirstEmission = false;
@@ -62,9 +84,14 @@ export class FirebaseAuthService extends AuthService {
 
     try {
       await setPersistence(this.auth, browserLocalPersistence);
-      await getRedirectResult(this.auth);
       await this.initialAuthStateReady;
-      this._user.set(this.auth.currentUser);
+
+      const user = this.auth.currentUser;
+      this._user.set(user);
+
+      if (user) {
+        void this.syncUserProfile(user);
+      }
     } catch (error) {
       this._errorMessage.set(this.getErrorMessage(error));
     } finally {
@@ -84,13 +111,19 @@ export class FirebaseAuthService extends AuthService {
       const currentUser = this.auth.currentUser;
 
       if (currentUser?.isAnonymous) {
-        await linkWithRedirect(currentUser, provider);
-        return;
+        await this.linkAnonymousWithGoogle(currentUser, provider);
+      } else {
+        const result = await signInWithPopup(this.auth, provider);
+        await result.user.reload();
+        this._user.set(result.user);
+        await this.syncUserProfile(result.user);
       }
-
-      await signInWithRedirect(this.auth, provider);
     } catch (error) {
-      this._errorMessage.set(this.getErrorMessage(error));
+      const message = this.getErrorMessage(error);
+      if (message) {
+        this._errorMessage.set(message);
+      }
+    } finally {
       this._isBusy.set(false);
     }
   }
@@ -109,20 +142,123 @@ export class FirebaseAuthService extends AuthService {
     }
   }
 
-  private getErrorMessage(error: unknown): string {
+  private async linkAnonymousWithGoogle(anonymousUser: User, provider: GoogleAuthProvider): Promise<void> {
+    const anonymousUid = anonymousUser.uid;
+
+    try {
+      const result = await linkWithPopup(anonymousUser, provider);
+      await result.user.reload();
+      this._user.set(result.user);
+      await this.syncUserProfile(result.user);
+    } catch (linkError) {
+      const code = (linkError as Partial<AuthError>).code;
+
+      if (code === 'auth/credential-already-in-use') {
+        const result = await signInWithPopup(this.auth, provider);
+        const newUid = result.user.uid;
+
+        if (anonymousUid !== newUid) {
+          await this.storageService.migrateData(anonymousUid, newUid);
+        }
+
+        await result.user.reload();
+        this._user.set(result.user);
+        await this.syncUserProfile(result.user);
+        return;
+      }
+
+      throw linkError;
+    }
+  }
+
+  private getErrorMessage(error: unknown): string | null {
     const authError = error as Partial<AuthError> | null;
 
     switch (authError?.code) {
+      case 'auth/popup-closed-by-user':
+      case 'auth/cancelled-popup-request':
+        return null;
       case 'auth/operation-not-allowed':
         return 'Google prijava nije omogućena u Firebase konzoli.';
       case 'auth/account-exists-with-different-credential':
         return 'Ovaj email je već povezan sa drugim načinom prijave.';
       case 'auth/credential-already-in-use':
-        return 'Ovaj Google nalog je već povezan sa drugim korisnikom. Potrebna je ručna migracija podataka.';
+        return 'Ovaj Google nalog je već povezan sa drugim korisnikom.';
       case 'auth/popup-blocked':
-        return 'Pregledač je blokirao prijavu. Pokušaj ponovo.';
+        return 'Pregledač je blokirao prijavu. Dozvoli pop-up prozore i pokušaj ponovo.';
       default:
-        return 'Google prijava nije uspela. Pokušaj ponovo.';
+        return 'Google prijava nije uspjela. Pokušaj ponovo.';
     }
+  }
+
+  private async syncUserProfile(user: User): Promise<void> {
+    const userDocRef = doc(this.db, `users/${user.uid}`);
+    const existingProfile = (await getDoc(userDocRef)).data() as Partial<UserProfile> | undefined;
+    const now = new Date();
+    const primaryProviderProfile = this.getPrimaryProviderProfile(user);
+    const providers = this.getResolvedProviders(user);
+    const isGoogleUser = providers.includes('google.com');
+
+    const profile: UserProfile = {
+      uid: user.uid,
+      isAnonymous: providers.length === 0,
+      primaryProvider: isGoogleUser ? 'google' : 'anonymous',
+      providers: providers.length > 0 ? providers : ['anonymous'],
+      email: user.email ?? primaryProviderProfile?.email ?? null,
+      displayName: user.displayName ?? primaryProviderProfile?.displayName ?? null,
+      photoUrl: user.photoURL ?? primaryProviderProfile?.photoURL ?? null,
+      createdAt: this.toDate(existingProfile?.createdAt) ?? now,
+      lastLoginAt: now,
+      linkedAt: isGoogleUser
+        ? this.toDate(existingProfile?.linkedAt) ?? now
+        : null,
+      upgradedFromAnonymous:
+        (existingProfile?.upgradedFromAnonymous as boolean | undefined) ||
+        (!!existingProfile?.isAnonymous && !user.isAnonymous),
+    };
+
+    await setDoc(userDocRef, profile, { merge: true });
+  }
+
+  private toDate(value: unknown): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    if (value instanceof Date) {
+      return value;
+    }
+
+    if (value instanceof Timestamp) {
+      return value.toDate();
+    }
+
+    if (typeof value === 'string' || typeof value === 'number') {
+      return new Date(value);
+    }
+
+    return null;
+  }
+
+  private getResolvedProviders(user: User): string[] {
+    return Array.from(
+      new Set(
+        user.providerData
+          .map((provider) => provider.providerId)
+          .filter((providerId): providerId is string => !!providerId && providerId !== 'firebase'),
+      ),
+    );
+  }
+
+  private getPrimaryProviderProfile(user: User | null): UserInfo | null {
+    if (!user) {
+      return null;
+    }
+
+    return (
+      user.providerData.find((provider) => provider.providerId === 'google.com') ??
+      user.providerData.find((provider) => provider.providerId !== 'firebase') ??
+      null
+    );
   }
 }

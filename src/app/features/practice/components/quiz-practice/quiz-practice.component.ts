@@ -18,8 +18,6 @@ interface QuizOption {
   templateUrl: './quiz-practice.component.html',
 })
 export class QuizPracticeComponent {
-  // ✅ UKLONJEN storage i spacedRepetition inject - više ne updateujemo odmah!
-
   public readonly words = input.required<Word[]>();
   public readonly mode = input.required<PracticeMode>();
   public readonly finished = output<PracticeResult[]>();
@@ -29,14 +27,14 @@ export class QuizPracticeComponent {
   public readonly results = signal<PracticeResult[]>([]);
 
   public readonly currentWord = computed(() => {
-    const w = this.words();
+    const words = this.words();
     const idx = this.currentIndex();
-    if (!w || idx >= w.length) return null;
-    return w[idx];
+    if (idx >= words.length) return null;
+    return words[idx];
   });
 
   public readonly progressPercent = computed(() => {
-    const total = this.words()?.length ?? 0;
+    const total = this.words().length;
     if (!total) return 0;
     return ((this.currentIndex() + 1) / total) * 100;
   });
@@ -84,7 +82,7 @@ export class QuizPracticeComponent {
 
     setTimeout(() => {
       const nextIdx = this.currentIndex() + 1;
-      const total = this.words()?.length ?? 0;
+      const total = this.words().length;
 
       if (nextIdx >= total) {
         this.finished.emit(this.results());

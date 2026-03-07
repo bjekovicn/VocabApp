@@ -1,9 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { StorageService } from '@core/services/abstractions/storage.service';
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
+import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
@@ -23,11 +22,11 @@ interface CategoryStats {
   templateUrl: './home.component.html',
 })
 export class HomePage {
-  private readonly storage = inject(StorageService);
   private readonly spacedRepetition = inject(SpacedRepetitionService);
+  private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
 
-  private readonly words = toSignal(this.storage.getWords(), { initialValue: [] });
+  private readonly words = this.vocabulary.words;
 
   public readonly totalWords = computed(() => this.words().length);
 

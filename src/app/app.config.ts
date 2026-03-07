@@ -4,7 +4,7 @@ import {
   provideAppInitializer,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 
 import { AuthService } from '@core/services/abstractions/auth.service';
@@ -19,7 +19,7 @@ import { JsonImportService } from '@core/services/implementations/json-import.se
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideAppInitializer(() => inject(AuthService).initialize()),
 
     { provide: AuthService, useClass: FirebaseAuthService },

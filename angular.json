@@ -11,7 +11,7 @@
       "schematics": {
         "@schematics/angular:component": {
           "style": "none",
-          "skipTests": true
+          "skipTests": false
         }
       },
       "root": "",

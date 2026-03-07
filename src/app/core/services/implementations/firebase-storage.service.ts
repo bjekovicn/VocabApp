@@ -243,4 +243,60 @@ export class FirebaseStorageService extends StorageService {
     // Briši listu
     await deleteDoc(this.wordListDocRef(listId));
   }
+
+  public async migrateData(fromUid: string, toUid: string): Promise<void> {
+    const sourceWordListsRef = collection(this.db, `users/${fromUid}/wordLists`).withConverter(
+      wordListConverter,
+    );
+    const sourceWordsRef = collection(this.db, `users/${fromUid}/words`).withConverter(wordConverter);
+
+    const [wordListsSnapshot, wordsSnapshot] = await Promise.all([
+      getDocs(sourceWordListsRef),
+      getDocs(sourceWordsRef),
+    ]);
+
+    let batch = writeBatch(this.db);
+    let operationCount = 0;
+    const BATCH_SIZE = 500;
+
+    const commitBatch = async () => {
+      if (operationCount > 0) {
+        await batch.commit();
+        batch = writeBatch(this.db);
+        operationCount = 0;
+      }
+    };
+
+    // Migrate WordLists
+    for (const docSnapshot of wordListsSnapshot.docs) {
+      const data = docSnapshot.data();
+      const newDocRef = doc(
+        this.db,
+        `users/${toUid}/wordLists/${docSnapshot.id}`,
+      ).withConverter(wordListConverter);
+      batch.set(newDocRef, data);
+      operationCount++;
+
+      if (operationCount >= BATCH_SIZE) {
+        await commitBatch();
+      }
+    }
+
+    // Migrate Words
+    for (const docSnapshot of wordsSnapshot.docs) {
+      const data = docSnapshot.data();
+      const newDocRef = doc(
+        this.db,
+        `users/${toUid}/words/${docSnapshot.id}`,
+      ).withConverter(wordConverter);
+      batch.set(newDocRef, data);
+      operationCount++;
+
+      if (operationCount >= BATCH_SIZE) {
+        await commitBatch();
+      }
+    }
+
+    await commitBatch();
+  }
 }

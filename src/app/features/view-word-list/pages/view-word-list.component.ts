@@ -1,9 +1,8 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { Router } from '@angular/router';
 import { StorageService } from '@core/services/abstractions/storage.service';
+import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { Word } from '@core/models/word.model';
 import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
@@ -26,23 +25,17 @@ import { WordProgressBadgesComponent } from 'src/app/components/progress-badges/
 })
 export class ViewWordListComponent {
   private readonly storage = inject(StorageService);
+  private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
 
-  private readonly queryListId = toSignal(
-    this.route.queryParamMap.pipe(map((params) => params.get('listId'))),
-    { initialValue: null },
-  );
-
-  private readonly allWords = toSignal(this.storage.getWords(), { initialValue: [] });
-  private readonly wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
+  public readonly listId = input<string | null>(null);
 
   public readonly selectedListId = signal<string>('all');
   public readonly selectedCategory = signal<WordCategory | 'all'>('all');
 
   public readonly listOptions = computed(() => [
     { value: 'all', label: 'Sve liste' },
-    ...this.wordLists().map((list) => ({
+    ...this.vocabulary.sortedWordLists().map((list) => ({
       value: list.id,
       label: list.name,
     })),
@@ -57,7 +50,7 @@ export class ViewWordListComponent {
   ]);
 
   public readonly filteredWords = computed(() => {
-    let words = this.allWords();
+    let words = this.vocabulary.words();
     const listId = this.selectedListId();
     const category = this.selectedCategory();
 
@@ -80,12 +73,8 @@ export class ViewWordListComponent {
   });
 
   constructor() {
-    // fix: constructor čita toSignal prije nego što route emituje vrijednost — treba effect()
     effect(() => {
-      const queryId = this.queryListId();
-      if (queryId) {
-        this.selectedListId.set(queryId);
-      }
+      this.selectedListId.set(this.listId() ?? 'all');
     });
   }
 
@@ -184,7 +173,7 @@ export class ViewWordListComponent {
   }
 
   public getListName(listId: string): string {
-    return this.wordLists().find((l) => l.id === listId)?.name || '';
+    return this.vocabulary.getWordListById(listId)?.name || '';
   }
 
   public getCategoryLabel(category: WordCategory): string {

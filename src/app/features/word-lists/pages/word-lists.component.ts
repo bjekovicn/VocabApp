@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { StorageService } from '@core/services/abstractions/storage.service';
+import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
@@ -15,18 +15,13 @@ import { CustomButtonComponent } from '@shared/button/custom-button';
 })
 export class WordListsPage {
   private readonly storage = inject(StorageService);
+  private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
 
-  private readonly wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
-  private readonly allWords = toSignal(this.storage.getWords(), { initialValue: [] });
-
   public readonly lists = computed(() => {
-    const lists = this.wordLists();
-    const words = this.allWords();
-
-    return lists.map((list) => ({
+    return this.vocabulary.sortedWordLists().map((list) => ({
       ...list,
-      wordCount: words.filter((w) => w.listId === list.id).length,
+      wordCount: this.vocabulary.getWordCountForList(list.id),
       languagePairDisplay: this.getLanguagePairDisplay(list.languagePair),
     }));
   });

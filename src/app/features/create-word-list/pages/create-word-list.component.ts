@@ -1,8 +1,8 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { of, switchMap } from 'rxjs';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { SUPPORTED_LANGUAGES, LanguagePair } from '@core/models/language.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
@@ -26,13 +26,16 @@ import { SelectOption } from '@shared/select/custom-select.types';
 export class CreateWordListPage {
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
 
-  private readonly listId = toSignal(this.route.paramMap.pipe(map((params) => params.get('id'))), {
-    initialValue: null,
-  });
+  public readonly id = input<string | null>(null);
+  private readonly currentList = toSignal(
+    toObservable(this.id).pipe(
+      switchMap((listId) => (listId ? this.storage.getWordListById(listId) : of(null))),
+    ),
+    { initialValue: null },
+  );
 
-  public readonly isEditMode = computed(() => this.listId() !== null);
+  public readonly isEditMode = computed(() => this.id() !== null);
   public readonly pageTitle = computed(() =>
     this.isEditMode() ? 'Izmeni Listu' : 'Kreiraj Novu Listu',
   );
@@ -60,15 +63,7 @@ export class CreateWordListPage {
 
   constructor() {
     effect(() => {
-      const id = this.listId();
-      if (id) {
-        this.loadList(id);
-      }
-    });
-  }
-
-  private loadList(id: string): void {
-    this.storage.getWordListById(id).subscribe((list) => {
+      const list = this.currentList();
       if (list) {
         this.name.set(list.name);
         const [source, target] = list.languagePair.split('-');
@@ -87,7 +82,7 @@ export class CreateWordListPage {
       const languagePair = `${this.sourceLanguage()}-${this.targetLanguage()}` as LanguagePair;
 
       if (this.isEditMode()) {
-        await this.storage.updateWordList(this.listId()!, {
+        await this.storage.updateWordList(this.id()!, {
           name: this.name(),
           languagePair,
         });

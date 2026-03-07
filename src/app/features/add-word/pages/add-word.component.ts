@@ -1,13 +1,14 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { of, switchMap } from 'rxjs';
 
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { WORD_CATEGORIES, WordCategory } from '@core/models/word-category.model';
 import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
 import { CreateWordDto } from '@core/models/word.model';
+import { VocabularyFacade } from '@core/state/vocabulary.facade';
 
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
@@ -30,50 +31,53 @@ import { QuizDistractorsEditorComponent } from '../components/quiz-distractors-e
   templateUrl: './add-word.component.html',
 })
 export class AddWordComponent {
-  private storage = inject(StorageService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private readonly storage = inject(StorageService);
+  private readonly vocabulary = inject(VocabularyFacade);
+  private readonly router = inject(Router);
 
-  // ===== ROUTE =====
-  private wordId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))), {
-    initialValue: null,
-  });
-
-  private wordLists = toSignal(this.storage.getWordLists(), { initialValue: [] });
+  public readonly id = input<string | null>(null);
+  private readonly currentWord = toSignal(
+    toObservable(this.id).pipe(
+      switchMap((wordId) => (wordId ? this.storage.getWordById(wordId) : of(null))),
+    ),
+    { initialValue: null },
+  );
 
   // ===== STATE =====
-  sourceText = signal('');
-  targetText = signal('');
-  category = signal<WordCategory | null>(null);
-  listId = signal('');
+  public readonly sourceText = signal('');
+  public readonly targetText = signal('');
+  public readonly category = signal<WordCategory | null>(null);
+  public readonly listId = signal('');
   public readonly note = signal('');
 
-  quiz = signal({
+  public readonly quiz = signal({
     sourceToTarget: ['', ''],
     targetToSource: ['', ''],
   });
 
-  isSaving = signal(false);
+  public readonly isSaving = signal(false);
 
   // ===== COMPUTED =====
-  isEditMode = computed(() => this.wordId() !== null);
+  public readonly isEditMode = computed(() => this.id() !== null);
 
-  pageTitle = computed(() => (this.isEditMode() ? 'Izmeni reč' : 'Dodaj novu reč'));
+  public readonly pageTitle = computed(() => (this.isEditMode() ? 'Izmeni reč' : 'Dodaj novu reč'));
 
-  categoryOptions = signal<SelectOption[]>(
+  public readonly categoryOptions = signal<SelectOption[]>(
     WORD_CATEGORIES.map((c) => ({ value: c.value, label: c.label })),
   );
 
-  listOptions = computed(() =>
-    this.wordLists()
+  public readonly listOptions = computed(() =>
+    this.vocabulary
+      .sortedWordLists()
       .slice()
-      .sort((a, b) => a.name.localeCompare(b.name))
       .map((list) => ({ value: list.id, label: list.name })),
   );
 
-  selectedList = computed(() => this.wordLists().find((l) => l.id === this.listId()) ?? null);
+  public readonly selectedList = computed(
+    () => this.vocabulary.getWordListById(this.listId()) ?? null,
+  );
 
-  languageLabels = computed(() => {
+  public readonly languageLabels = computed(() => {
     const list = this.selectedList();
     if (!list) return null;
 
@@ -89,7 +93,7 @@ export class AddWordComponent {
     };
   });
 
-  isValid = computed(() => {
+  public readonly isValid = computed(() => {
     const q = this.quiz();
     return !!(
       this.sourceText().trim() &&
@@ -103,22 +107,16 @@ export class AddWordComponent {
 
   constructor() {
     effect(() => {
-      const id = this.wordId();
-      if (id) this.loadWord(id);
-    });
-  }
-
-  // ===== LOAD WORD =====
-  private loadWord(id: string) {
-    this.storage.getWordById(id).subscribe((word) => {
-      if (!word) return;
+      const word = this.currentWord();
+      if (!word) {
+        return;
+      }
 
       this.sourceText.set(word.sourceText);
       this.targetText.set(word.targetText);
       this.category.set(word.category);
       this.listId.set(word.listId);
       this.note.set(word.note ?? '');
-
       this.quiz.set({
         sourceToTarget: word.quizDistractorsSourceToTarget ?? ['', ''],
         targetToSource: word.quizDistractorsTargetToSource ?? ['', ''],
@@ -142,7 +140,7 @@ export class AddWordComponent {
   }
 
   // ===== SAVE =====
-  async handleSubmit() {
+  public async handleSubmit(): Promise<void> {
     if (!this.isValid() || this.isSaving()) return;
 
     this.isSaving.set(true);
@@ -163,7 +161,7 @@ export class AddWordComponent {
       };
 
       if (this.isEditMode()) {
-        await this.storage.updateWord(this.wordId()!, wordData);
+        await this.storage.updateWord(this.id()!, wordData);
       } else {
         await this.storage.createWord(wordData);
       }
@@ -177,15 +175,15 @@ export class AddWordComponent {
     }
   }
 
-  handleCancel() {
+  public handleCancel(): void {
     this.router.navigate(['/words']);
   }
 
-  setCategory(value: string | null) {
+  public setCategory(value: string | null): void {
     this.category.set((value as WordCategory) ?? null);
   }
 
-  setList(value: string | null) {
+  public setList(value: string | null): void {
     this.listId.set(value ?? '');
   }
 }

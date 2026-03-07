@@ -22,17 +22,17 @@ export class FlipCardPracticeComponent {
   public readonly results = signal<PracticeResult[]>([]);
   public readonly hintLevel = signal(0);
 
-  public readonly hasWords = computed(() => this.words()?.length > 0);
+  public readonly hasWords = computed(() => this.words().length > 0);
 
   public readonly currentWord = computed(() => {
-    const w = this.words();
+    const words = this.words();
     const idx = this.currentIndex();
-    if (!w || idx >= w.length) return null;
-    return w[idx];
+    if (idx >= words.length) return null;
+    return words[idx];
   });
 
   public readonly progressPercent = computed(() => {
-    const total = this.words()?.length ?? 0;
+    const total = this.words().length;
     if (!total) return 0;
     return ((this.currentIndex() + 1) / total) * 100;
   });
@@ -90,7 +90,7 @@ export class FlipCardPracticeComponent {
 
     setTimeout(() => {
       const nextIdx = this.currentIndex() + 1;
-      const total = this.words()?.length ?? 0;
+      const total = this.words().length;
 
       if (nextIdx >= total) {
         this.finished.emit(this.results());
