@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { Word } from '@core/models/word.model';
@@ -25,6 +26,7 @@ import { WordProgressBadgesComponent } from 'src/app/components/progress-badges/
   templateUrl: './view-word-list.component.html',
 })
 export class ViewWordListComponent {
+  private readonly spacedRepetition = inject(SpacedRepetitionService);
   private readonly storage = inject(StorageService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
@@ -138,6 +140,122 @@ export class ViewWordListComponent {
     if (dates.length === 0) return 999;
     const latest = Math.max(...dates.map((d) => new Date(d).getTime()));
     return Math.floor((Date.now() - latest) / 86400000);
+  }
+
+  getLastActivityLabel(word: Word): string {
+    const daysSinceReview = this.getDaysSinceReview(word);
+
+    if (daysSinceReview === 999) {
+      return this.i18n.t('words.lastActivity.never');
+    }
+
+    if (daysSinceReview <= 0) {
+      return this.i18n.t('words.lastActivity.today');
+    }
+
+    if (daysSinceReview === 1) {
+      return this.i18n.t('words.lastActivity.yesterday');
+    }
+
+    return this.i18n.t('words.lastActivity.daysAgo', { count: daysSinceReview });
+  }
+
+  getWordStatusLabel(word: Word): string {
+    if (this.getTotalAttempts(word) === 0) {
+      return this.i18n.t('words.status.new');
+    }
+
+    if (this.isDueForReview(word)) {
+      return this.i18n.t('words.status.review');
+    }
+
+    if (this.isWeakWord(word)) {
+      return this.i18n.t('words.status.weak');
+    }
+
+    if (this.isMasteredWord(word)) {
+      return this.i18n.t('words.status.stable');
+    }
+
+    return this.i18n.t('words.status.inProgress');
+  }
+
+  getWordStatusClass(word: Word): string {
+    if (this.getTotalAttempts(word) === 0) {
+      return 'bg-slate-100 text-slate-700';
+    }
+
+    if (this.isDueForReview(word)) {
+      return 'bg-amber-100 text-amber-700';
+    }
+
+    if (this.isWeakWord(word)) {
+      return 'bg-red-100 text-red-700';
+    }
+
+    if (this.isMasteredWord(word)) {
+      return 'bg-emerald-100 text-emerald-700';
+    }
+
+    return 'bg-blue-100 text-blue-700';
+  }
+
+  getWordProgressPercent(word: Word): number {
+    const attempts = this.getTotalAttempts(word);
+    if (attempts === 0) {
+      return 0;
+    }
+
+    const accuracyScore = this.getTotalAccuracy(word);
+    const easeScore = Math.max(0, Math.min(100, ((this.getAvgEaseFactor(word) - 1.3) / 1.4) * 100));
+    const repetitionScore = Math.min(100, (attempts / 12) * 100);
+
+    return Math.round(accuracyScore * 0.45 + easeScore * 0.35 + repetitionScore * 0.2);
+  }
+
+  getWordProgressBarClass(word: Word): string {
+    if (this.isMasteredWord(word)) {
+      return 'bg-emerald-500';
+    }
+
+    if (this.isDueForReview(word)) {
+      return 'bg-amber-500';
+    }
+
+    if (this.isWeakWord(word)) {
+      return 'bg-red-500';
+    }
+
+    if (this.getTotalAttempts(word) > 0) {
+      return 'bg-blue-500';
+    }
+
+    return 'bg-slate-300';
+  }
+
+  private isDueForReview(word: Word): boolean {
+    return this.getModes(word).some(
+      (mode) => mode.repetitions > 0 && this.spacedRepetition.isDueForReview(mode),
+    );
+  }
+
+  private isWeakWord(word: Word): boolean {
+    return this.getModes(word).some(
+      (mode) => mode.repetitions > 0 && (mode.easeFactor < 2.1 || mode.incorrectCount > mode.correctCount),
+    );
+  }
+
+  private isMasteredWord(word: Word): boolean {
+    return this.getTotalAttempts(word) > 0 && this.getAvgEaseFactor(word) >= 2.5 && this.getTotalAccuracy(word) >= 80;
+  }
+
+  private getModes(word: Word) {
+    return [
+      word.flipCardSourceToTarget,
+      word.flipCardTargetToSource,
+      word.quizSourceToTarget,
+      word.quizTargetToSource,
+    ];
   }
 
   // ================================

@@ -86,6 +86,16 @@
                       {{ getListName(word.listId) }}
                     </span>
                   </div>
+
+                  <div class="mb-4 flex flex-wrap items-center gap-2">
+                    <span
+                      class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                      [class]="getWordStatusClass(word)"
+                    >
+                      {{ getWordStatusLabel(word) }}
+                    </span>
+                    <span class="text-xs text-gray-500">{{ getLastActivityLabel(word) }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -96,6 +106,30 @@
                 [easeFactor]="getAvgEaseFactor(word)"
                 [daysSinceReview]="getDaysSinceReview(word)"
               />
+
+              <div class="mt-4 rounded-xl bg-gray-50 p-3">
+                <div class="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">{{
+                      i18n.t('words.progressLabel')
+                    }}</span>
+                    <p class="text-xs text-gray-500">
+                      {{ i18n.t('words.progressHint') }}
+                    </p>
+                  </div>
+                  <span class="text-sm font-semibold text-gray-900">
+                    {{ getWordProgressPercent(word) }}%
+                  </span>
+                </div>
+
+                <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+                  <div
+                    class="h-full rounded-full transition-all duration-300"
+                    [class]="getWordProgressBarClass(word)"
+                    [style.width.%]="getWordProgressPercent(word)"
+                  ></div>
+                </div>
+              </div>
 
               @if (word.note) {
                 <div
