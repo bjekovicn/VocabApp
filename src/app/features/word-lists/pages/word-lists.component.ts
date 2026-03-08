@@ -21,6 +21,8 @@ interface WordListProgressViewModel {
   id: string;
   name: string;
   languagePair: string;
+  isDefault: boolean;
+  isReadOnlyDefault: boolean;
   wordCount: number;
   languagePairDisplay: string;
   studiedWordCount: number;
@@ -65,6 +67,8 @@ export class WordListsPage {
         id: list.id,
         name: list.name,
         languagePair: list.languagePair,
+        isDefault: list.isDefault ?? false,
+        isReadOnlyDefault: list.isReadOnlyDefault ?? false,
         wordCount: insight.wordCount,
         languagePairDisplay: this.i18n.getLanguagePairDisplay(list.languagePair),
         studiedWordCount: insight.studiedWordCount,
@@ -118,12 +122,14 @@ export class WordListsPage {
     this.router.navigate(['/word-lists/create']);
   }
 
-  public navigateToEdit(id: string): void {
-    this.router.navigate(['/word-lists/edit', id]);
+  public async navigateToEdit(id: string): Promise<void> {
+    const listId = await this.storage.ensureListOwnership(id);
+    await this.router.navigate(['/word-lists/edit', listId]);
   }
 
-  public navigateToWords(listId: string): void {
-    this.router.navigate(['/words'], { queryParams: { listId } });
+  public async navigateToWords(listId: string): Promise<void> {
+    const ownedListId = await this.storage.ensureListOwnership(listId);
+    await this.router.navigate(['/words'], { queryParams: { listId: ownedListId } });
   }
 
   // ================================

@@ -70,7 +70,18 @@
               >
                 {{ list.languagePairDisplay }}
               </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-2">{{ list.name }}</h3>
+              <div class="mb-2 flex flex-wrap items-center gap-2">
+                <h3 class="text-xl font-bold text-gray-900">{{ list.name }}</h3>
+                @if (list.isDefault) {
+                  <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                    {{ i18n.t('wordLists.defaultBadge') }}
+                  </span>
+                }
+              </div>
+
+              @if (list.isReadOnlyDefault) {
+                <p class="mb-3 text-xs text-gray-500">{{ i18n.t('wordLists.defaultHint') }}</p>
+              }
 
               <div class="mb-4 flex flex-wrap items-center gap-2">
                 <span

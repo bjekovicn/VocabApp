@@ -34,7 +34,7 @@ export class ImportFacade {
   public readonly listOptions = computed(() =>
     this.vocabulary.sortedWordLists().map((list) => ({
       value: list.id,
-      label: `${list.name} (${this.i18n.getLanguagePairDisplay(list.languagePair)})`,
+      label: `${list.name}${list.isDefault ? ` • ${this.i18n.t('wordLists.defaultBadge')}` : ''} (${this.i18n.getLanguagePairDisplay(list.languagePair)})`,
     })),
   );
 
@@ -170,7 +170,8 @@ export class ImportFacade {
     }
 
     const listId = this.selectedListId();
-    const languagePair = this.selectedList()?.languagePair;
+    const selectedList = this.selectedList();
+    const languagePair = selectedList?.languagePair;
 
     if (!listId) {
       throw new Error(this.i18n.t('import.listNotFound'));
@@ -180,7 +181,11 @@ export class ImportFacade {
       throw new Error(this.i18n.t('import.languagePairNotFound'));
     }
 
-    return { listId, languagePair };
+    const effectiveListId = selectedList?.isReadOnlyDefault
+      ? await this.storage.ensureListOwnership(listId)
+      : listId;
+
+    return { listId: effectiveListId, languagePair };
   }
 
   private getLanguageLabels(sourceCode: string, targetCode: string): { source: string; target: string } {

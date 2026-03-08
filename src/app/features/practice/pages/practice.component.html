@@ -68,13 +68,13 @@
             <app-custom-button
               variant="primary"
               [fullWidth]="true"
-              [disabled]="availableWords().length === 0"
+              [disabled]="availableWordCount() === 0"
               (clicked)="startPractice()"
             >
               {{ startButtonLabel() }}
-              @if (availableWords().length > 0) {
+              @if (availableWordCount() > 0) {
                 <span class="ml-2 text-sm opacity-75">
-                  ({{ i18n.t('common.wordCount', { count: availableWords().length }) }})
+                  ({{ i18n.t('common.wordCount', { count: availableWordCount() }) }})
                 </span>
               }
             </app-custom-button>

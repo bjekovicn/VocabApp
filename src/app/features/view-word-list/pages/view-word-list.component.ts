@@ -36,12 +36,13 @@ export class ViewWordListComponent {
 
   public readonly selectedListId = signal<string>('all');
   public readonly selectedCategory = signal<WordCategory | 'all'>('all');
+  public readonly materializingListId = signal<string | null>(null);
 
   public readonly listOptions = computed(() => [
     { value: 'all', label: this.i18n.t('common.allLists') },
     ...this.vocabulary.sortedWordLists().map((list) => ({
       value: list.id,
-      label: list.name,
+      label: `${list.name}${list.isDefault ? ` • ${this.i18n.t('wordLists.defaultBadge')}` : ''}`,
     })),
   ]);
 
@@ -79,6 +80,17 @@ export class ViewWordListComponent {
   constructor() {
     effect(() => {
       this.selectedListId.set(this.listId() ?? 'all');
+    });
+
+    effect(() => {
+      const selectedListId = this.selectedListId();
+      const selectedList = this.vocabulary.getWordListById(selectedListId);
+
+      if (!selectedList?.isReadOnlyDefault || this.materializingListId() === selectedListId) {
+        return;
+      }
+
+      void this.materializeSelectedList(selectedListId);
     });
   }
 
@@ -335,6 +347,19 @@ export class ViewWordListComponent {
     } catch (error) {
       console.error('Error deleting word:', error);
       alert(this.i18n.t('words.deleteError'));
+    }
+  }
+
+  private async materializeSelectedList(listId: string): Promise<void> {
+    this.materializingListId.set(listId);
+
+    try {
+      const ownedListId = await this.storage.ensureListOwnership(listId);
+      this.selectedListId.set(ownedListId);
+    } catch (error) {
+      console.error('Error materializing default list:', error);
+    } finally {
+      this.materializingListId.set(null);
     }
   }
 }

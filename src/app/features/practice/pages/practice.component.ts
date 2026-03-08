@@ -49,6 +49,7 @@ export class PracticeComponent {
   protected readonly selectedListSummary = this.facade.selectedListSummary;
   protected readonly filterOptions = this.facade.filterOptions;
   protected readonly availableWords = this.facade.availableWords;
+  protected readonly availableWordCount = this.facade.availableWordCount;
   protected readonly stats = this.facade.stats;
   protected readonly startButtonLabel = this.facade.startButtonLabel;
 
@@ -58,8 +59,8 @@ export class PracticeComponent {
     });
   }
 
-  public startPractice(): void {
-    this.facade.startPractice();
+  public async startPractice(): Promise<void> {
+    await this.facade.startPractice();
   }
 
   public handleDirectionChange(direction: string): void {

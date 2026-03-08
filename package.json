@@ -5,6 +5,7 @@
     "config": "node scripts/generate-env.js",
     "build": "npm run config && ng build",
     "generate-env": "node scripts/generate-env.js",
+    "seed:default-lists": "node scripts/seed-default-word-lists.js",
     "start": "npm run generate-env && ng serve",
     "build:prod": "npm run generate-env && ng build --configuration production",
     "test": "ng test --watch=false"

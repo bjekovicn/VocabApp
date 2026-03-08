@@ -10,6 +10,7 @@ export interface Word {
   listId: string;
   languagePair: LanguagePair; // npr. "de-sr"
   note?: string;
+  originDefaultWordId?: string;
 
   // Quiz opcije (2 pogrešna odgovora)
   quizDistractorsSourceToTarget: string[]; // 2 pogrešna prevoda

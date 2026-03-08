@@ -11,6 +11,7 @@ export abstract class StorageService {
   public abstract getWordListById(id: string): Observable<WordList | null>;
   public abstract createWordList(dto: CreateWordListDto): Promise<string>;
   public abstract updateWordList(id: string, updates: Partial<WordList>): Promise<void>;
+  public abstract ensureListOwnership(listId: string): Promise<string>;
 
   // Words
   public abstract getWords(): Observable<Word[]>;

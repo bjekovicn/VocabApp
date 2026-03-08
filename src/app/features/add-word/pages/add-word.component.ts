@@ -74,7 +74,10 @@ export class AddWordComponent {
     this.vocabulary
       .sortedWordLists()
       .slice()
-      .map((list) => ({ value: list.id, label: list.name })),
+      .map((list) => ({
+        value: list.id,
+        label: `${list.name}${list.isDefault ? ` • ${this.i18n.t('wordLists.defaultBadge')}` : ''}`,
+      })),
   );
 
   public readonly selectedList = computed(
@@ -150,16 +153,27 @@ export class AddWordComponent {
     this.isSaving.set(true);
 
     try {
-      const list = this.selectedList();
+      let list = this.selectedList();
       if (!list || !this.category()) {
         throw new Error(this.i18n.t('wordForm.listOrCategoryMissing'));
+      }
+
+      let effectiveListId = this.listId();
+      if (list.isReadOnlyDefault) {
+        effectiveListId = await this.storage.ensureListOwnership(list.id);
+        this.listId.set(effectiveListId);
+        list = {
+          ...list,
+          id: effectiveListId,
+          isReadOnlyDefault: false,
+        };
       }
 
       const wordData: CreateWordDto = {
         sourceText: this.sourceText(),
         targetText: this.targetText(),
         category: this.category()!,
-        listId: this.listId(),
+        listId: effectiveListId,
         note: this.note(),
         languagePair: list.languagePair,
         quizDistractorsSourceToTarget: this.quiz().sourceToTarget,

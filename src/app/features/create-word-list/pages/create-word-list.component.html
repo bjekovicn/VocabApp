@@ -19,6 +19,7 @@
             [label]="i18n.t('listForm.sourceLanguage')"
             [placeholder]="i18n.t('listForm.selectLanguage')"
             [options]="languageOptions()"
+            [disabled]="isDefaultManagedList()"
             [(value)]="sourceLanguage"
           />
 
@@ -26,9 +27,14 @@
             [label]="i18n.t('listForm.targetLanguage')"
             [placeholder]="i18n.t('listForm.selectLanguage')"
             [options]="languageOptions()"
+            [disabled]="isDefaultManagedList()"
             [(value)]="targetLanguage"
           />
         </div>
+
+        @if (isDefaultManagedList()) {
+          <p class="text-sm text-gray-500">{{ i18n.t('listForm.defaultPairLocked') }}</p>
+        }
 
         @if (sourceLanguage() && targetLanguage() && sourceLanguage() === targetLanguage()) {
           <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

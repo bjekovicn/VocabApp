@@ -38,6 +38,7 @@ export class CreateWordListPage {
   );
 
   public readonly isEditMode = computed(() => this.id() !== null);
+  public readonly isDefaultManagedList = computed(() => !!this.currentList()?.isDefault);
   public readonly pageTitle = computed(() =>
     this.isEditMode() ? this.i18n.t('listForm.editTitle') : this.i18n.t('listForm.createTitle'),
   );
@@ -81,10 +82,15 @@ export class CreateWordListPage {
     this.isSaving.set(true);
 
     try {
-      const languagePair = `${this.sourceLanguage()}-${this.targetLanguage()}` as LanguagePair;
+      const existingLanguagePair = this.currentList()?.languagePair;
+      const languagePair =
+        this.isEditMode() && this.isDefaultManagedList() && existingLanguagePair
+          ? existingLanguagePair
+          : (`${this.sourceLanguage()}-${this.targetLanguage()}` as LanguagePair);
 
       if (this.isEditMode()) {
-        await this.storage.updateWordList(this.id()!, {
+        const listId = await this.storage.ensureListOwnership(this.id()!);
+        await this.storage.updateWordList(listId, {
           name: this.name(),
           languagePair,
         });

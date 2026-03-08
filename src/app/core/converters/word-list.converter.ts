@@ -11,6 +11,9 @@ export const wordListConverter: FirestoreDataConverter<WordList> = {
     return {
       name: list.name,
       languagePair: list.languagePair,
+      isDefault: list.isDefault ?? false,
+      originDefaultListId: list.originDefaultListId ?? null,
+      wordCount: list.wordCount ?? null,
       createdAt: Timestamp.fromDate(list.createdAt),
       updatedAt: Timestamp.fromDate(list.updatedAt),
     };
@@ -22,6 +25,9 @@ export const wordListConverter: FirestoreDataConverter<WordList> = {
       id: snapshot.id,
       name: data['name'],
       languagePair: data['languagePair'],
+      isDefault: data['isDefault'] ?? false,
+      originDefaultListId: data['originDefaultListId'] ?? undefined,
+      wordCount: data['wordCount'] ?? undefined,
       createdAt: data['createdAt']?.toDate() ?? new Date(),
       updatedAt: data['updatedAt']?.toDate() ?? new Date(),
     };

@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
 import { Word } from '@core/models/word.model';
 import { PracticeMode } from '@core/models/practice-mode.model';
@@ -38,6 +39,11 @@ export class PracticeFacade {
     () => `${this.selectedType()}-${this.selectedDirection()}` as PracticeMode,
   );
 
+  public readonly selectedList = computed(() => {
+    const selectedListId = this.selectedListId();
+    return selectedListId === 'all' ? null : this.vocabulary.getWordListById(selectedListId);
+  });
+
   public readonly listOptions = computed<SelectOption[]>(() => [
     { value: 'all', label: this.i18n.t('common.allLists') },
     ...this.vocabulary.sortedWordLists().map((list) => {
@@ -49,7 +55,7 @@ export class PracticeFacade {
 
       return {
         value: list.id,
-        label: `${list.name} (${details})`,
+        label: `${list.name}${list.isDefault ? ` • ${this.i18n.t('wordLists.defaultBadge')}` : ''} (${details})`,
       };
     }),
   ]);
@@ -61,7 +67,7 @@ export class PracticeFacade {
       return null;
     }
 
-    const selectedList = this.vocabulary.getWordListById(selectedListId);
+    const selectedList = this.selectedList();
     if (!selectedList) {
       return null;
     }
@@ -78,15 +84,25 @@ export class PracticeFacade {
 
   public readonly listFilteredWords = computed(() => {
     const selectedListId = this.selectedListId();
+    const selectedList = this.selectedList();
 
     if (selectedListId === 'all') {
       return this.vocabulary.words();
+    }
+
+    if (selectedList?.isReadOnlyDefault) {
+      return [];
     }
 
     return this.vocabulary.words().filter((word) => word.listId === selectedListId);
   });
 
   public readonly filterCounts = computed(() => {
+    const selectedList = this.selectedList();
+    if (selectedList?.isReadOnlyDefault) {
+      return this.getDefaultFilterCounts(selectedList.wordCount ?? 0);
+    }
+
     const words = this.listFilteredWords();
     const progressKey = this.getProgressKey(this.selectedMode());
 
@@ -162,45 +178,35 @@ export class PracticeFacade {
   ]);
 
   public readonly availableWords = computed(() => {
-    const words = this.listFilteredWords();
-    const progressKey = this.getProgressKey(this.selectedMode());
-
-    switch (this.selectedFilter()) {
-      case 'new':
-        return words.filter(
-          (word) =>
-            word[progressKey].repetitions === 0 &&
-            word[progressKey].correctCount === 0 &&
-            word[progressKey].incorrectCount === 0,
-        );
-      case 'forgotten':
-        return words.filter(
-          (word) =>
-            word[progressKey].repetitions > 0 &&
-            this.spacedRepetition.isDueForReview(word[progressKey]),
-        );
-      case 'weakest':
-        return words
-          .filter(
-            (word) =>
-              word[progressKey].repetitions > 0 &&
-              (word[progressKey].easeFactor < 2.1 ||
-                word[progressKey].incorrectCount > word[progressKey].correctCount),
-          )
-          .sort((a, b) => a[progressKey].easeFactor - b[progressKey].easeFactor);
-      case 'mastered':
-        return words
-          .filter(
-            (word) =>
-              word[progressKey].repetitions > 0 &&
-              word[progressKey].easeFactor >= 2.5 &&
-              word[progressKey].correctCount >= word[progressKey].incorrectCount,
-          )
-          .sort((a, b) => b[progressKey].easeFactor - a[progressKey].easeFactor);
-      case 'all':
-      default:
-        return words;
+    if (this.selectedList()?.isReadOnlyDefault) {
+      return [];
     }
+
+    const words = this.listFilteredWords();
+    return this.applyFilterToWords(words, this.selectedFilter(), this.getProgressKey(this.selectedMode()));
+  });
+
+  public readonly availableWordCount = computed(() => {
+    const selectedList = this.selectedList();
+    if (selectedList?.isReadOnlyDefault) {
+      const counts = this.filterCounts();
+
+      switch (this.selectedFilter()) {
+        case 'new':
+          return counts.new;
+        case 'forgotten':
+          return counts.forgotten;
+        case 'weakest':
+          return counts.weakest;
+        case 'mastered':
+          return counts.mastered;
+        case 'all':
+        default:
+          return counts.all;
+      }
+    }
+
+    return this.availableWords().length;
   });
 
   public readonly stats = computed((): PracticeStats => {
@@ -258,8 +264,16 @@ export class PracticeFacade {
     }
   }
 
-  public startPractice(): void {
-    const words = this.availableWords();
+  public async startPractice(): Promise<void> {
+    let words = this.availableWords();
+    const selectedList = this.selectedList();
+
+    if (selectedList?.isReadOnlyDefault) {
+      const ownedListId = await this.storage.ensureListOwnership(selectedList.id);
+      this.selectedListId.set(ownedListId);
+      const ownedWords = await firstValueFrom(this.storage.getWordsByListId(ownedListId));
+      words = this.applyFilterToWords(ownedWords, this.selectedFilter(), this.getProgressKey(this.selectedMode()));
+    }
 
     if (words.length === 0) {
       this.errorMessage.set(this.i18n.t('practice.noWordsForSelection'));
@@ -325,6 +339,63 @@ export class PracticeFacade {
     }
 
     return shuffled;
+  }
+
+  private getDefaultFilterCounts(wordCount: number) {
+    return {
+      all: wordCount,
+      new: wordCount,
+      forgotten: 0,
+      weakest: 0,
+      mastered: 0,
+    };
+  }
+
+  private applyFilterToWords(
+    words: Word[],
+    filter: WordFilter,
+    progressKey:
+      | 'flipCardSourceToTarget'
+      | 'flipCardTargetToSource'
+      | 'quizSourceToTarget'
+      | 'quizTargetToSource',
+  ): Word[] {
+    switch (filter) {
+      case 'new':
+        return words.filter(
+          (word) =>
+            word[progressKey].repetitions === 0 &&
+            word[progressKey].correctCount === 0 &&
+            word[progressKey].incorrectCount === 0,
+        );
+      case 'forgotten':
+        return words.filter(
+          (word) =>
+            word[progressKey].repetitions > 0 &&
+            this.spacedRepetition.isDueForReview(word[progressKey]),
+        );
+      case 'weakest':
+        return words
+          .filter(
+            (word) =>
+              word[progressKey].repetitions > 0 &&
+              (word[progressKey].easeFactor < 2.1 ||
+                word[progressKey].incorrectCount > word[progressKey].correctCount),
+          )
+          .sort((a, b) => a[progressKey].easeFactor - b[progressKey].easeFactor);
+      case 'mastered':
+        return words
+          .filter(
+            (word) =>
+              word[progressKey].repetitions > 0 &&
+              word[progressKey].easeFactor >= 2.5 &&
+              word[progressKey].correctCount >= word[progressKey].incorrectCount,
+          )
+          .sort((a, b) => b[progressKey].easeFactor - a[progressKey].easeFactor);
+      case 'all':
+      default:
+        return words;
+    }
   }
 
   private getProgressKey(

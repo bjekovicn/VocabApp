@@ -58,7 +58,7 @@ export class VocabularyFacade {
 
     for (const wordList of this.wordLists()) {
       const words = wordsByListId.get(wordList.id) ?? [];
-      const wordCount = words.length;
+      const wordCount = words.length > 0 ? words.length : (wordList.wordCount ?? 0);
       const studiedWordCount = words.filter((word) => this.getTotalAttempts(word) > 0).length;
       const masteredWordCount = words.filter((word) => this.isMastered(word)).length;
       const coveragePercent = wordCount > 0 ? Math.round((studiedWordCount / wordCount) * 100) : 0;
