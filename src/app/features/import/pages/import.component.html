@@ -1,12 +1,12 @@
 <div class="min-h-screen bg-gray-50 py-8 px-4">
   <div class="max-w-4xl mx-auto">
     <app-custom-card>
-      <h1 class="text-3xl font-bold text-gray-900 mb-6">📥 Importuj Reči</h1>
+      <h1 class="text-3xl font-bold text-gray-900 mb-6">📥 {{ i18n.t('import.title') }}</h1>
 
       <div class="space-y-6">
         <!-- IMPORT MODE SWITCH -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Način Importa</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ i18n.t('import.mode') }}</label>
           <app-mode-switch
             [selectedValue]="importMode()"
             [options]="importModeOptions()"
@@ -16,7 +16,7 @@
 
         <!-- LIST MODE SWITCH -->
         <div class="bg-gray-100 rounded-lg p-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Lista</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ i18n.t('import.list') }}</label>
           <app-mode-switch
             [selectedValue]="listMode()"
             [options]="listModeOptions()"
@@ -56,9 +56,9 @@
         @if (importMode() === 'paste') {
           <div class="mt-8">
             <app-custom-input
-              label="Tema za AI Generisanje"
-              placeholder="npr. Osnovni glagoli kretanja, Hrana u restoranu, Poslovna terminologija..."
-              hint="Ova tema će se koristiti u AI promptu za generisanje odgovarajućih reči"
+              [label]="i18n.t('import.topic')"
+              [placeholder]="i18n.t('import.topicPlaceholder')"
+              [hint]="i18n.t('import.topicHint')"
               [value]="topicDescription()"
               (valueChange)="topicDescription.set($event)"
             />
@@ -93,7 +93,7 @@
           <div
             class="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800 text-sm font-semibold"
           >
-            ✅ Uspešno importovano {{ successCount() }} reči!
+            ✅ {{ i18n.t('common.wordsImportedSuccess', { count: successCount() }) }}
           </div>
         }
 
@@ -107,9 +107,9 @@
             [rightIcon]="isImporting() ? '...' : '✓'"
           >
             @if (isImporting()) {
-              Importovanje...
+              {{ i18n.t('import.importing') }}
             } @else {
-              Importuj Reči
+              {{ i18n.t('import.importWords') }}
             }
           </app-custom-button>
 
@@ -120,7 +120,7 @@
             (clicked)="handleCancel()"
             [leftIcon]="'✕'"
           >
-            Otkaži
+            {{ i18n.t('common.cancel') }}
           </app-custom-button>
         </div>
       </div>

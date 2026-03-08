@@ -6,6 +6,7 @@ import { PracticeResult, PracticeStats } from '@core/models/practice-session.mod
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
+import { I18nService } from '@core/services/i18n.service';
 import { SelectOption } from '@shared/select/custom-select.types';
 import { FilterOption } from '../components/filter-selector/filter-selector.component';
 
@@ -19,6 +20,7 @@ export class PracticeFacade {
   private readonly storage = inject(StorageService);
   private readonly spacedRepetition = inject(SpacedRepetitionService);
   private readonly vocabulary = inject(VocabularyFacade);
+  private readonly i18n = inject(I18nService);
 
   public readonly state = signal<PracticeState>('setup');
   public readonly errorMessage = signal<string | null>(null);
@@ -37,13 +39,13 @@ export class PracticeFacade {
   );
 
   public readonly listOptions = computed<SelectOption[]>(() => [
-    { value: 'all', label: 'Sve liste' },
+    { value: 'all', label: this.i18n.t('common.allLists') },
     ...this.vocabulary.sortedWordLists().map((list) => {
       const insight = this.vocabulary.getWordListInsight(list.id);
       const details =
         insight.wordCount === 0
-          ? 'prazna lista'
-          : `${insight.wordCount} reči, ${insight.coveragePercent}% obrađeno, ${this.getLastActivityLabel(insight.lastActivityDays)}`;
+          ? this.i18n.t('wordLists.status.empty').toLowerCase()
+          : `${this.i18n.t('common.wordCount', { count: insight.wordCount })}, ${this.i18n.t('home.studied').toLowerCase()} ${insight.coveragePercent}%, ${this.getLastActivityLabel(insight.lastActivityDays)}`;
 
       return {
         value: list.id,
@@ -119,7 +121,7 @@ export class PracticeFacade {
   public readonly filterOptions = computed<FilterOption[]>(() => [
     {
       value: 'all',
-      label: 'Sve reči',
+      label: this.i18n.t('practice.filter.all'),
       icon: '📚',
       count: this.filterCounts().all,
       disabled: false,
@@ -127,7 +129,7 @@ export class PracticeFacade {
     },
     {
       value: 'weakest',
-      label: 'Najslabije',
+      label: this.i18n.t('practice.filter.weakest'),
       icon: '📉',
       count: this.filterCounts().weakest,
       disabled: this.filterCounts().weakest === 0,
@@ -135,7 +137,7 @@ export class PracticeFacade {
     },
     {
       value: 'forgotten',
-      label: 'Zaboravljene',
+      label: this.i18n.t('practice.filter.forgotten'),
       icon: '🕰️',
       count: this.filterCounts().forgotten,
       disabled: this.filterCounts().forgotten === 0,
@@ -143,7 +145,7 @@ export class PracticeFacade {
     },
     {
       value: 'new',
-      label: 'Nove',
+      label: this.i18n.t('practice.filter.new'),
       icon: '✨',
       count: this.filterCounts().new,
       disabled: this.filterCounts().new === 0,
@@ -151,7 +153,7 @@ export class PracticeFacade {
     },
     {
       value: 'mastered',
-      label: 'Savladane',
+      label: this.i18n.t('practice.filter.mastered'),
       icon: '🏆',
       count: this.filterCounts().mastered,
       disabled: this.filterCounts().mastered === 0,
@@ -217,16 +219,16 @@ export class PracticeFacade {
   public readonly startButtonLabel = computed(() => {
     switch (this.selectedFilter()) {
       case 'forgotten':
-        return 'Počni Obnovu';
+        return this.i18n.t('practice.start.forgotten');
       case 'new':
-        return 'Počni Nove Reči';
+        return this.i18n.t('practice.start.new');
       case 'weakest':
-        return 'Počni Utvrđivanje';
+        return this.i18n.t('practice.start.weakest');
       case 'mastered':
-        return 'Ponovi Savladane';
+        return this.i18n.t('practice.start.mastered');
       case 'all':
       default:
-        return 'Počni Vežbanje';
+        return this.i18n.t('practice.start.default');
     }
   });
 
@@ -260,7 +262,7 @@ export class PracticeFacade {
     const words = this.availableWords();
 
     if (words.length === 0) {
-      this.errorMessage.set('Nema reči za vežbanje za izabrani mod i filter.');
+      this.errorMessage.set(this.i18n.t('practice.noWordsForSelection'));
       return;
     }
 
@@ -304,7 +306,7 @@ export class PracticeFacade {
       this.errorMessage.set(null);
     } catch (error) {
       console.error('Error updating progress:', error);
-      this.errorMessage.set('Greška pri čuvanju napretka.');
+      this.errorMessage.set(this.i18n.t('practice.saveError'));
     }
   }
 
@@ -346,17 +348,17 @@ export class PracticeFacade {
 
   private getLastActivityLabel(lastActivityDays: number | null): string {
     if (lastActivityDays === null) {
-      return 'nikad vežbana';
+      return this.i18n.t('practice.lastActivity.never');
     }
 
     if (lastActivityDays <= 0) {
-      return 'aktivna danas';
+      return this.i18n.t('practice.lastActivity.today');
     }
 
     if (lastActivityDays === 1) {
-      return 'aktivna juče';
+      return this.i18n.t('practice.lastActivity.yesterday');
     }
 
-    return `aktivna pre ${lastActivityDays} dana`;
+    return this.i18n.t('practice.lastActivity.daysAgo', { count: lastActivityDays });
   }
 }

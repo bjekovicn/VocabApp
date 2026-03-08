@@ -17,4 +17,7 @@
     (blur)="handleBlur()"
     class="input"
   />
+  @if (hint()) {
+    <p class="mt-1 text-sm text-gray-500">{{ hint() }}</p>
+  }
 </div>

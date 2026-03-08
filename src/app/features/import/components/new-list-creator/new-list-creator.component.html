@@ -1,8 +1,8 @@
 <div class="mt-8">
   <div class="mb-6">
     <app-custom-input
-      label="Naziv Liste"
-      placeholder="npr. Osnovne Reči, Putovanje, Posao..."
+      [label]="i18n.t('import.newListName')"
+      [placeholder]="i18n.t('import.newListPlaceholder')"
       [value]="name()"
       (valueChange)="nameChange.emit($event)"
       [required]="true"
@@ -12,8 +12,8 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>
       <app-custom-select
-        label="Jezik koji učiš"
-        placeholder="Izaberi jezik"
+        [label]="i18n.t('import.learnLanguage')"
+        [placeholder]="i18n.t('listForm.selectLanguage')"
         [options]="languageOptions()"
         [required]="true"
         [value]="sourceLanguage()"
@@ -23,8 +23,8 @@
 
     <div>
       <app-custom-select
-        label="Tvoj jezik"
-        placeholder="Izaberi jezik"
+        [label]="i18n.t('import.yourLanguage')"
+        [placeholder]="i18n.t('listForm.selectLanguage')"
         [options]="languageOptions()"
         [required]="true"
         [value]="targetLanguage()"

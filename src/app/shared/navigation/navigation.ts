@@ -1,14 +1,17 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '@core/services/abstractions/auth.service';
+import { I18nService } from '@core/services/i18n.service';
+import { LanguageSwitcherComponent } from '@shared/language-switcher/language-switcher';
 
 @Component({
   selector: 'app-navigation',
-  imports: [RouterModule],
+  imports: [RouterModule, LanguageSwitcherComponent],
   templateUrl: './navigation.html',
 })
 export class NavigationComponent {
   private readonly auth = inject(AuthService);
+  public readonly i18n = inject(I18nService);
 
   public readonly isMenuOpen = signal(false);
   public readonly isAnonymousUser = this.auth.isAnonymous;
@@ -16,10 +19,12 @@ export class NavigationComponent {
   public readonly authError = this.auth.errorMessage;
   public readonly userPhotoUrl = this.auth.photoUrl;
   public readonly userLabel = computed(
-    () => this.auth.displayName() ?? this.auth.email() ?? 'Google nalog',
+    () => this.auth.displayName() ?? this.auth.email() ?? this.i18n.t('auth.googleAccount'),
   );
   public readonly userSubLabel = computed(() =>
-    this.auth.displayName() && this.auth.email() ? this.auth.email() : 'Povezan Google nalog',
+    this.auth.displayName() && this.auth.email()
+      ? this.auth.email()
+      : this.i18n.t('nav.connectedGoogle'),
   );
   public readonly userInitials = computed(() => {
     const source = this.auth.displayName() ?? this.auth.email() ?? 'G';

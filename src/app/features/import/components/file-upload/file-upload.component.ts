@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 
 @Component({
   selector: 'app-file-upload',
@@ -8,6 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './file-upload.component.html',
 })
 export class FileUploadComponent {
+  public readonly i18n = inject(I18nService);
   public readonly selectedFile = input<File | null>(null);
   public readonly fileSelected = output<File>();
 

@@ -2,21 +2,21 @@
   <div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">Liste Reči</h1>
-        <p class="text-gray-600">Organizuj reči u tematske liste</p>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ i18n.t('wordLists.title') }}</h1>
+        <p class="text-gray-600">{{ i18n.t('wordLists.subtitle') }}</p>
       </div>
       <app-custom-button variant="primary" (clicked)="navigateToCreate()">
-        Nova Lista
+        {{ i18n.t('wordLists.newList') }}
       </app-custom-button>
     </div>
 
     @if (lists().length === 0) {
       <app-custom-card>
         <div class="text-center py-12">
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">Nema lista</h3>
-          <p class="text-gray-600 mb-6">Kreiraj prvu listu da počneš da dodaješ reči</p>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ i18n.t('wordLists.emptyTitle') }}</h3>
+          <p class="text-gray-600 mb-6">{{ i18n.t('wordLists.emptySubtitle') }}</p>
           <app-custom-button variant="primary" (clicked)="navigateToCreate()">
-            Kreiraj Prvu Listu
+            {{ i18n.t('wordLists.createFirst') }}
           </app-custom-button>
         </div>
       </app-custom-card>
@@ -24,7 +24,7 @@
       <div class="mb-6 flex justify-end">
         <div class="w-full md:w-72">
           <app-custom-select
-            label="Sortiraj liste"
+            [label]="i18n.t('wordLists.sort')"
             [options]="sortOptions()"
             [(value)]="selectedSort"
           />
@@ -51,13 +51,13 @@
                     class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                     (click)="navigateToEdit(list.id); closeMenu()"
                   >
-                    Izmeni
+                    {{ i18n.t('common.edit') }}
                   </button>
                   <button
                     class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                     (click)="confirmDelete(list.id); closeMenu()"
                   >
-                    Obriši
+                    {{ i18n.t('common.delete') }}
                   </button>
                 </div>
               }
@@ -84,9 +84,9 @@
 
               <div class="rounded-xl bg-gray-50 p-3">
                 <div class="mb-2 flex items-center justify-between gap-3">
-                  <span class="text-sm font-medium text-gray-700">Obrađeno</span>
+                  <span class="text-sm font-medium text-gray-700">{{ i18n.t('wordLists.studied') }}</span>
                   <span class="text-sm font-semibold text-gray-900">
-                    {{ list.studiedWordCount }}/{{ list.wordCount }} reči
+                    {{ list.studiedWordCount }}/{{ list.wordCount }} {{ i18n.t('nav.words').toLowerCase() }}
                   </span>
                 </div>
 
@@ -99,18 +99,18 @@
                 </div>
 
                 <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
-                  <span>{{ list.coveragePercent }}% pregledano</span>
-                  <span>{{ list.masteredWordCount }} savladano</span>
+                  <span>{{ i18n.t('wordLists.reviewedPercent', { percent: list.coveragePercent }) }}</span>
+                  <span>{{ i18n.t('wordLists.masteredCount', { count: list.masteredWordCount }) }}</span>
                 </div>
               </div>
 
               <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
                 <div>
                   <span class="text-2xl font-bold text-blue-600">{{ list.wordCount }}</span>
-                  <span class="ml-1 text-sm text-gray-500">reči</span>
+                  <span class="ml-1 text-sm text-gray-500">{{ i18n.t('nav.words').toLowerCase() }}</span>
                 </div>
                 <span class="text-sm font-medium text-gray-600">
-                  {{ list.masteryPercent }}% savladano
+                  {{ i18n.t('wordLists.masteredPercent', { percent: list.masteryPercent }) }}
                 </span>
               </div>
             </div>
@@ -125,17 +125,15 @@
 @if (deleteModalListId() !== null) {
   <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-xl p-6 w-80">
-      <h3 class="text-lg font-semibold mb-2">Obrisati listu?</h3>
-      <p class="text-sm text-gray-600 mb-4">
-        Sve reči u listi će biti obrisane. Ova akcija je trajna.
-      </p>
+      <h3 class="text-lg font-semibold mb-2">{{ i18n.t('wordLists.deleteTitle') }}</h3>
+      <p class="text-sm text-gray-600 mb-4">{{ i18n.t('wordLists.deleteBody') }}</p>
 
       <div class="flex justify-end gap-2">
         <app-custom-button variant="secondary" (clicked)="closeDeleteModal()">
-          Otkaži
+          {{ i18n.t('common.cancel') }}
         </app-custom-button>
         <app-custom-button variant="danger" (clicked)="deleteListConfirmed()">
-          Obriši
+          {{ i18n.t('common.delete') }}
         </app-custom-button>
       </div>
     </div>

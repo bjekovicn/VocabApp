@@ -5,6 +5,7 @@ import { ImportService } from '@core/services/abstractions/import.service';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { LanguagePair, SUPPORTED_LANGUAGES } from '@core/models/language.model';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
+import { I18nService } from '@core/services/i18n.service';
 import { buildImportPrompt } from './import.prompt.constant';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class ImportFacade {
   private readonly importService = inject(ImportService);
   private readonly router = inject(Router);
   private readonly vocabulary = inject(VocabularyFacade);
+  private readonly i18n = inject(I18nService);
 
   public readonly importMode = signal<'paste' | 'file'>('paste');
   public readonly listMode = signal<'existing' | 'new'>('new');
@@ -32,25 +34,25 @@ export class ImportFacade {
   public readonly listOptions = computed(() =>
     this.vocabulary.sortedWordLists().map((list) => ({
       value: list.id,
-      label: `${list.name} (${list.languagePair})`,
+      label: `${list.name} (${this.i18n.getLanguagePairDisplay(list.languagePair)})`,
     })),
   );
 
   public readonly languageOptions = computed(() =>
     SUPPORTED_LANGUAGES.map((lang) => ({
       value: lang.code,
-      label: `${lang.flag} ${lang.name}`,
+      label: this.i18n.getLanguageDisplay(lang.code),
     })),
   );
 
   public readonly importModeOptions = computed(() => [
-    { value: 'paste', label: 'Nalepi AI odgovor', icon: '📋' },
-    { value: 'file', label: 'Upload Fajl', icon: '📁' },
+    { value: 'paste', label: this.i18n.t('import.mode.paste'), icon: '📋' },
+    { value: 'file', label: this.i18n.t('import.mode.file'), icon: '📁' },
   ]);
 
   public readonly listModeOptions = computed(() => [
-    { value: 'new', label: 'Kreiraj novu', icon: '➕' },
-    { value: 'existing', label: 'Izaberi postojeću', icon: '📚' },
+    { value: 'new', label: this.i18n.t('import.list.new'), icon: '➕' },
+    { value: 'existing', label: this.i18n.t('import.list.existing'), icon: '📚' },
   ]);
 
   public readonly selectedList = computed(
@@ -96,7 +98,7 @@ export class ImportFacade {
 
   public readonly aiFullPrompt = computed(() => {
     const { source, target } = this.languageLabels();
-    return buildImportPrompt(source, target, this.topicDescription().trim());
+    return buildImportPrompt(this.i18n, source, target, this.topicDescription().trim());
   });
 
   public handleImportModeChange(mode: string): void {
@@ -135,7 +137,7 @@ export class ImportFacade {
         void this.router.navigate(['/words'], { queryParams: { listId } });
       }, 1500);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Nepoznata greška';
+      const message = error instanceof Error ? error.message : this.i18n.t('import.unknownError');
       this.errors.set(message.split('\n'));
     } finally {
       this.isImporting.set(false);
@@ -148,7 +150,7 @@ export class ImportFacade {
       this.promptCopied.set(true);
       setTimeout(() => this.promptCopied.set(false), 2000);
     } catch {
-      this.errors.set(['Kopiranje prompta nije uspelo.']);
+      this.errors.set([this.i18n.t('import.copyFailed')]);
     }
   }
 
@@ -171,11 +173,11 @@ export class ImportFacade {
     const languagePair = this.selectedList()?.languagePair;
 
     if (!listId) {
-      throw new Error('Lista nije pronađena');
+      throw new Error(this.i18n.t('import.listNotFound'));
     }
 
     if (!languagePair) {
-      throw new Error('Jezički par nije pronađen');
+      throw new Error(this.i18n.t('import.languagePairNotFound'));
     }
 
     return { listId, languagePair };
@@ -186,8 +188,8 @@ export class ImportFacade {
     const targetLanguage = SUPPORTED_LANGUAGES.find((lang) => lang.code === targetCode);
 
     return {
-      source: sourceLanguage ? `${sourceLanguage.flag} ${sourceLanguage.name}` : sourceCode,
-      target: targetLanguage ? `${targetLanguage.flag} ${targetLanguage.name}` : targetCode,
+      source: sourceLanguage ? this.i18n.getLanguageDisplay(sourceLanguage.code) : sourceCode,
+      target: targetLanguage ? this.i18n.getLanguageDisplay(targetLanguage.code) : targetCode,
     };
   }
 

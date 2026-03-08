@@ -14,7 +14,7 @@
           [routerLinkActiveOptions]="{ exact: true }"
           class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Home
+          {{ i18n.t('nav.home') }}
         </a>
 
         <a
@@ -22,7 +22,7 @@
           routerLinkActive="bg-primary-700"
           class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Liste
+          {{ i18n.t('nav.lists') }}
         </a>
 
         <a
@@ -30,7 +30,7 @@
           routerLinkActive="bg-primary-700"
           class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Reči
+          {{ i18n.t('nav.words') }}
         </a>
 
         <a
@@ -38,7 +38,7 @@
           routerLinkActive="bg-primary-700"
           class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Vežbaj
+          {{ i18n.t('nav.practice') }}
         </a>
 
         <a
@@ -46,20 +46,24 @@
           routerLinkActive="bg-primary-700"
           class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Import
+          {{ i18n.t('nav.import') }}
         </a>
       </div>
 
       <div class="hidden md:flex items-center gap-3">
+        <div class="w-52">
+          <app-language-switcher />
+        </div>
+
         @if (isAnonymousUser()) {
-          <span class="text-sm text-primary-100">Anonimna sesija</span>
+          <span class="text-sm text-primary-100">{{ i18n.t('nav.anonymousSession') }}</span>
           <button
             type="button"
             (click)="handleGoogleSignIn()"
             [disabled]="isAuthBusy()"
             class="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Poveži Google
+            {{ i18n.t('nav.linkGoogle') }}
           </button>
         } @else {
           <div class="flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-2">
@@ -90,7 +94,7 @@
             [disabled]="isAuthBusy()"
             class="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Odjavi se
+            {{ i18n.t('nav.signOut') }}
           </button>
         }
       </div>
@@ -130,7 +134,7 @@
           (click)="closeMenu()"
           class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Home
+          {{ i18n.t('nav.home') }}
         </a>
 
         <a
@@ -139,7 +143,7 @@
           (click)="closeMenu()"
           class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Liste
+          {{ i18n.t('nav.lists') }}
         </a>
 
         <a
@@ -148,7 +152,7 @@
           (click)="closeMenu()"
           class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Reči
+          {{ i18n.t('nav.words') }}
         </a>
 
         <a
@@ -157,7 +161,7 @@
           (click)="closeMenu()"
           class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Vežbaj
+          {{ i18n.t('nav.practice') }}
         </a>
 
         <a
@@ -166,19 +170,23 @@
           (click)="closeMenu()"
           class="block px-3 py-2 rounded-md hover:bg-primary-700 transition"
         >
-          Import
+          {{ i18n.t('nav.import') }}
         </a>
+
+        <div class="px-3 pt-2">
+          <app-language-switcher />
+        </div>
 
         <div class="border-t border-white/20 pt-3">
           @if (isAnonymousUser()) {
-            <p class="px-3 pb-2 text-sm text-primary-100">Anonimna sesija</p>
+            <p class="px-3 pb-2 text-sm text-primary-100">{{ i18n.t('nav.anonymousSession') }}</p>
             <button
               type="button"
               (click)="handleGoogleSignIn()"
               [disabled]="isAuthBusy()"
               class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Poveži Google
+              {{ i18n.t('nav.linkGoogle') }}
             </button>
           } @else {
             <div class="mx-3 mb-3 flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-3">
@@ -209,7 +217,7 @@
               [disabled]="isAuthBusy()"
               class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Odjavi se
+              {{ i18n.t('nav.signOut') }}
             </button>
           }
         </div>

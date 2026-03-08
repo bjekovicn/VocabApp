@@ -7,6 +7,7 @@ import { of, switchMap } from 'rxjs';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { WORD_CATEGORIES, WordCategory } from '@core/models/word-category.model';
 import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
+import { I18nService } from '@core/services/i18n.service';
 import { CreateWordDto } from '@core/models/word.model';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 
@@ -34,6 +35,7 @@ export class AddWordComponent {
   private readonly storage = inject(StorageService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
+  public readonly i18n = inject(I18nService);
 
   public readonly id = input<string | null>(null);
   private readonly currentWord = toSignal(
@@ -60,10 +62,12 @@ export class AddWordComponent {
   // ===== COMPUTED =====
   public readonly isEditMode = computed(() => this.id() !== null);
 
-  public readonly pageTitle = computed(() => (this.isEditMode() ? 'Izmeni reč' : 'Dodaj novu reč'));
+  public readonly pageTitle = computed(() =>
+    this.isEditMode() ? this.i18n.t('wordForm.editTitle') : this.i18n.t('wordForm.createTitle'),
+  );
 
-  public readonly categoryOptions = signal<SelectOption[]>(
-    WORD_CATEGORIES.map((c) => ({ value: c.value, label: c.label })),
+  public readonly categoryOptions = computed<SelectOption[]>(() =>
+    WORD_CATEGORIES.map((c) => ({ value: c.value, label: this.i18n.getCategoryLabel(c.value) })),
   );
 
   public readonly listOptions = computed(() =>
@@ -86,8 +90,8 @@ export class AddWordComponent {
     const targetLang = SUPPORTED_LANGUAGES.find((l) => l.code === targetCode);
 
     return {
-      source: sourceLang ? `${sourceLang.flag} ${sourceLang.name}` : sourceCode.toUpperCase(),
-      target: targetLang ? `${targetLang.flag} ${targetLang.name}` : targetCode.toUpperCase(),
+      source: sourceLang ? this.i18n.getLanguageDisplay(sourceLang.code) : sourceCode.toUpperCase(),
+      target: targetLang ? this.i18n.getLanguageDisplay(targetLang.code) : targetCode.toUpperCase(),
       sourceCode,
       targetCode,
     };
@@ -147,7 +151,9 @@ export class AddWordComponent {
 
     try {
       const list = this.selectedList();
-      if (!list || !this.category()) throw new Error('Lista ili kategorija nisu izabrani');
+      if (!list || !this.category()) {
+        throw new Error(this.i18n.t('wordForm.listOrCategoryMissing'));
+      }
 
       const wordData: CreateWordDto = {
         sourceText: this.sourceText(),
@@ -169,7 +175,7 @@ export class AddWordComponent {
       this.router.navigate(['/words']);
     } catch (error) {
       console.error('Error saving word:', error);
-      alert('Greška pri čuvanju reči');
+      alert(this.i18n.t('wordForm.saveError'));
     } finally {
       this.isSaving.set(false);
     }

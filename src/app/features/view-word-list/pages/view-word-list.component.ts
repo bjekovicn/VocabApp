@@ -5,6 +5,7 @@ import { StorageService } from '@core/services/abstractions/storage.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { Word } from '@core/models/word.model';
 import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomSelectComponent } from '@shared/select/custom-select';
@@ -27,6 +28,7 @@ export class ViewWordListComponent {
   private readonly storage = inject(StorageService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
+  public readonly i18n = inject(I18nService);
 
   public readonly listId = input<string | null>(null);
 
@@ -34,18 +36,18 @@ export class ViewWordListComponent {
   public readonly selectedCategory = signal<WordCategory | 'all'>('all');
 
   public readonly listOptions = computed(() => [
-    { value: 'all', label: 'Sve liste' },
+    { value: 'all', label: this.i18n.t('common.allLists') },
     ...this.vocabulary.sortedWordLists().map((list) => ({
       value: list.id,
       label: list.name,
     })),
   ]);
 
-  public readonly categoryOptions = signal<SelectOption[]>([
-    { value: 'all', label: 'Sve kategorije' },
+  public readonly categoryOptions = computed<SelectOption[]>(() => [
+    { value: 'all', label: this.i18n.t('common.allCategories') },
     ...WORD_CATEGORIES.map((cat) => ({
       value: cat.value,
-      label: cat.label,
+      label: this.i18n.getCategoryLabel(cat.value),
     })),
   ]);
 
@@ -177,7 +179,7 @@ export class ViewWordListComponent {
   }
 
   public getCategoryLabel(category: WordCategory): string {
-    return WORD_CATEGORIES.find((c) => c.value === category)?.label || '';
+    return this.i18n.getCategoryLabel(category);
   }
 
   openMenuId = signal<string | null>(null);
@@ -214,7 +216,7 @@ export class ViewWordListComponent {
       this.deleteModalWordId.set(null);
     } catch (error) {
       console.error('Error deleting word:', error);
-      alert('Greška pri brisanju reči');
+      alert(this.i18n.t('words.deleteError'));
     }
   }
 }

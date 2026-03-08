@@ -18,6 +18,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class CustomInputComponent implements ControlValueAccessor {
   public readonly label = input<string>('');
   public readonly placeholder = input<string>('');
+  public readonly hint = input<string>('');
   public readonly type = input<string>('text');
   public readonly disabled = input<boolean>(false);
   public readonly required = input<boolean>(false);

@@ -2,11 +2,11 @@
   <div class="mb-8">
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-900">
-        Reč {{ currentIndex() + 1 }} / {{ words().length }}
+        {{ i18n.t('practice.wordProgress', { current: currentIndex() + 1, total: words().length }) }}
       </h1>
 
       <app-custom-button variant="secondary" (clicked)="finished.emit(results())">
-        Završi
+        {{ i18n.t('practice.finish') }}
       </app-custom-button>
     </div>
 

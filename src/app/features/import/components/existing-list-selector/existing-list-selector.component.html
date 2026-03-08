@@ -1,7 +1,7 @@
 <div class="mt-8">
   <app-custom-select
-    label="Ciljana Lista"
-    placeholder="Izaberi listu"
+    [label]="i18n.t('import.targetList')"
+    [placeholder]="i18n.t('wordForm.selectList')"
     [options]="listOptions()"
     [required]="true"
     [value]="selectedListId()"

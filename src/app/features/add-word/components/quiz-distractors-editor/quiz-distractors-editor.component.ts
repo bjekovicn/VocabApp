@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomInputComponent } from '@shared/input/custom-input';
 
 @Component({
@@ -9,6 +10,7 @@ import { CustomInputComponent } from '@shared/input/custom-input';
   templateUrl: './quiz-distractors-editor.component.html',
 })
 export class QuizDistractorsEditorComponent {
+  public readonly i18n = inject(I18nService);
   public readonly sourceToTarget = input<string[]>(['', '']);
   public readonly targetToSource = input<string[]>(['', '']);
   public readonly sourceLanguage = input<string>('');

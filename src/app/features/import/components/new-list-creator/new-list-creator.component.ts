@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomInputComponent } from '@shared/input/custom-input';
 import { CustomSelectComponent } from '@shared/select/custom-select';
 
@@ -15,6 +16,7 @@ export interface LanguageOption {
   templateUrl: './new-list-creator.component.html',
 })
 export class NewListCreatorComponent {
+  public readonly i18n = inject(I18nService);
   public readonly name = input<string>('');
   public readonly sourceLanguage = input<string>('');
   public readonly targetLanguage = input<string>('');

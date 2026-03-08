@@ -2,29 +2,29 @@
   <div class="max-w-2xl mx-auto">
     <div class="mb-8">
       <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ pageTitle() }}</h1>
-      <p class="text-gray-600">Popuni informacije o listi</p>
+      <p class="text-gray-600">{{ i18n.t('listForm.subtitle') }}</p>
     </div>
 
     <app-custom-card>
       <div class="space-y-6">
         <app-custom-input
-          label="Naziv Liste"
-          placeholder="npr. Najvazniji glagoli"
+          [label]="i18n.t('listForm.name')"
+          [placeholder]="i18n.t('listForm.namePlaceholder')"
           [required]="true"
           [(value)]="name"
         />
 
         <div class="grid grid-cols-2 gap-4">
           <app-custom-select
-            label="Izvorni Jezik"
-            placeholder="Izaberi jezik"
+            [label]="i18n.t('listForm.sourceLanguage')"
+            [placeholder]="i18n.t('listForm.selectLanguage')"
             [options]="languageOptions()"
             [(value)]="sourceLanguage"
           />
 
           <app-custom-select
-            label="Ciljni Jezik"
-            placeholder="Izaberi jezik"
+            [label]="i18n.t('listForm.targetLanguage')"
+            [placeholder]="i18n.t('listForm.selectLanguage')"
             [options]="languageOptions()"
             [(value)]="targetLanguage"
           />
@@ -32,7 +32,7 @@
 
         @if (sourceLanguage() && targetLanguage() && sourceLanguage() === targetLanguage()) {
           <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            Izvorni i ciljni jezik moraju biti različiti
+            {{ i18n.t('listForm.languageDistinct') }}
           </div>
         }
 
@@ -43,7 +43,13 @@
             [disabled]="!isValid() || isSaving()"
             (clicked)="handleSubmit()"
           >
-            {{ isSaving() ? 'Čuvanje...' : isEditMode() ? 'Sačuvaj Izmene' : 'Kreiraj Listu' }}
+            {{
+              isSaving()
+                ? i18n.t('common.saving')
+                : isEditMode()
+                  ? i18n.t('common.saveChanges')
+                  : i18n.t('listForm.create')
+            }}
           </app-custom-button>
           <app-custom-button
             variant="secondary"
@@ -51,7 +57,7 @@
             [disabled]="isSaving()"
             (clicked)="handleCancel()"
           >
-            Otkaži
+            {{ i18n.t('common.cancel') }}
           </app-custom-button>
         </div>
       </div>

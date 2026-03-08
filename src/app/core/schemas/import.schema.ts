@@ -13,22 +13,22 @@ const VALID_CATEGORIES = [
 ] as const;
 
 const ImportWordSchema = z.object({
-  sourceText: z.string().min(1, 'sourceText ne smije biti prazan'),
-  targetText: z.string().min(1, 'targetText ne smije biti prazan'),
+  sourceText: z.string().min(1, 'import.validation.sourceTextRequired'),
+  targetText: z.string().min(1, 'import.validation.targetTextRequired'),
   category: z.enum(VALID_CATEGORIES, {
-    error: `category mora biti jedna od: ${VALID_CATEGORIES.join(', ')}`,
+    error: 'import.validation.categoryInvalid',
   }),
-  note: z.string().max(300, 'note ne smije biti duži od 300 znakova').optional(),
+  note: z.string().max(300, 'import.validation.noteTooLong').optional(),
   quizDistractorsSourceToTarget: z
     .array(z.string().min(1))
-    .length(2, 'quizDistractorsSourceToTarget mora imati tačno 2 elementa'),
+    .length(2, 'import.validation.sourceDistractorsLength'),
   quizDistractorsTargetToSource: z
     .array(z.string().min(1))
-    .length(2, 'quizDistractorsTargetToSource mora imati tačno 2 elementa'),
+    .length(2, 'import.validation.targetDistractorsLength'),
 }) satisfies z.ZodType<ImportWordData>;
 
 const ImportFileSchema = z.object({
-  words: z.array(ImportWordSchema).min(1, '"words" niz ne smije biti prazan'),
+  words: z.array(ImportWordSchema).min(1, 'import.validation.wordsRequired'),
 }) satisfies z.ZodType<ImportFileData>;
 
 export { ImportFileSchema };

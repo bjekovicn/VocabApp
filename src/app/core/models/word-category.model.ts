@@ -8,13 +8,13 @@ export type WordCategory =
   | 'conjunction'
   | 'other';
 
-export const WORD_CATEGORIES: { value: WordCategory; label: string }[] = [
-  { value: 'noun', label: 'Imenica' },
-  { value: 'verb', label: 'Glagol' },
-  { value: 'adjective', label: 'Pridjev' },
-  { value: 'adverb', label: 'Prilog' },
-  { value: 'pronoun', label: 'Zamjenica' },
-  { value: 'preposition', label: 'Predlog' },
-  { value: 'conjunction', label: 'Veznik' },
-  { value: 'other', label: 'Ostalo' },
+export const WORD_CATEGORIES: { value: WordCategory }[] = [
+  { value: 'noun' },
+  { value: 'verb' },
+  { value: 'adjective' },
+  { value: 'adverb' },
+  { value: 'pronoun' },
+  { value: 'preposition' },
+  { value: 'conjunction' },
+  { value: 'other' },
 ];

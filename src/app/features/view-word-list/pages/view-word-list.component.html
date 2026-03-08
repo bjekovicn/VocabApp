@@ -2,22 +2,22 @@
   <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">Sve Reči</h1>
-        <p class="text-gray-600">Poredane od najgorih ka najboljim</p>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ i18n.t('words.title') }}</h1>
+        <p class="text-gray-600">{{ i18n.t('words.subtitle') }}</p>
       </div>
       <app-custom-button variant="primary" (clicked)="navigateToAdd()">
-        Dodaj Reč
+        {{ i18n.t('words.add') }}
       </app-custom-button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <app-custom-select
-        label="Filtriraj po listi"
+        [label]="i18n.t('words.filterByList')"
         [options]="listOptions()"
         [(value)]="selectedListId"
       />
       <app-custom-select
-        label="Filtriraj po kategoriji"
+        [label]="i18n.t('words.filterByCategory')"
         [options]="categoryOptions()"
         [(value)]="selectedCategory"
       />
@@ -26,10 +26,10 @@
     @if (filteredWords().length === 0) {
       <app-custom-card>
         <div class="text-center py-12">
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">Nema reči</h3>
-          <p class="text-gray-600 mb-6">Dodaj prvu reč da počneš</p>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ i18n.t('words.emptyTitle') }}</h3>
+          <p class="text-gray-600 mb-6">{{ i18n.t('words.emptySubtitle') }}</p>
           <app-custom-button variant="primary" (clicked)="navigateToAdd()">
-            Dodaj Prvu Reč
+            {{ i18n.t('words.addFirst') }}
           </app-custom-button>
         </div>
       </app-custom-card>
@@ -51,13 +51,13 @@
                     class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                     (click)="navigateToEdit(word.id); closeMenu()"
                   >
-                    Izmeni
+                    {{ i18n.t('common.edit') }}
                   </button>
                   <button
                     class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                     (click)="confirmDelete(word.id); closeMenu()"
                   >
-                    Obriši
+                    {{ i18n.t('common.delete') }}
                   </button>
                 </div>
               }
@@ -116,15 +116,15 @@
 @if (deleteModalWordId() !== null) {
   <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-xl p-6 w-80">
-      <h3 class="text-lg font-semibold mb-2">Obrisati reč?</h3>
-      <p class="text-sm text-gray-600 mb-4">Ova akcija je trajna.</p>
+      <h3 class="text-lg font-semibold mb-2">{{ i18n.t('words.deleteTitle') }}</h3>
+      <p class="text-sm text-gray-600 mb-4">{{ i18n.t('words.deleteBody') }}</p>
 
       <div class="flex justify-end gap-2">
         <app-custom-button variant="secondary" (clicked)="closeDeleteModal()">
-          Otkaži
+          {{ i18n.t('common.cancel') }}
         </app-custom-button>
         <app-custom-button variant="danger" (clicked)="deleteWordConfirmed()">
-          Obriši
+          {{ i18n.t('common.delete') }}
         </app-custom-button>
       </div>
     </div>

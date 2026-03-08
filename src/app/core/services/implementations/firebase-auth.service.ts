@@ -17,12 +17,14 @@ import { Timestamp, doc, getDoc, getFirestore, setDoc } from 'firebase/firestore
 
 import { UserProfile } from '@core/models/user-profile.model';
 import { AuthService } from '@core/services/abstractions/auth.service';
+import { I18nService } from '@core/services/i18n.service';
 import { FirebaseStorageService } from './firebase-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class FirebaseAuthService extends AuthService {
   private readonly auth: Auth = getAuth();
   private readonly db = getFirestore();
+  private readonly i18n = inject(I18nService);
   private readonly storageService = inject(FirebaseStorageService);
   private readonly _user = signal<User | null>(null);
   private readonly _isReady = signal(false);
@@ -179,15 +181,15 @@ export class FirebaseAuthService extends AuthService {
       case 'auth/cancelled-popup-request':
         return null;
       case 'auth/operation-not-allowed':
-        return 'Google prijava nije omogućena u Firebase konzoli.';
+        return this.i18n.t('errors.auth.operationNotAllowed');
       case 'auth/account-exists-with-different-credential':
-        return 'Ovaj email je već povezan sa drugim načinom prijave.';
+        return this.i18n.t('errors.auth.accountExistsDifferentCredential');
       case 'auth/credential-already-in-use':
-        return 'Ovaj Google nalog je već povezan sa drugim korisnikom.';
+        return this.i18n.t('errors.auth.credentialAlreadyInUse');
       case 'auth/popup-blocked':
-        return 'Pregledač je blokirao prijavu. Dozvoli pop-up prozore i pokušaj ponovo.';
+        return this.i18n.t('errors.auth.popupBlocked');
       default:
-        return 'Google prijava nije uspjela. Pokušaj ponovo.';
+        return this.i18n.t('errors.auth.default');
     }
   }
 

@@ -1,5 +1,5 @@
 <div class="space-y-2">
-  <label class="block text-sm font-medium text-gray-700">Filter reči</label>
+  <label class="block text-sm font-medium text-gray-700">{{ i18n.t('practice.filter.label') }}</label>
   <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
     @for (option of options(); track option.value) {
       <button

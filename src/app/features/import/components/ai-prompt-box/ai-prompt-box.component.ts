@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 
 @Component({
@@ -9,6 +10,7 @@ import { CustomButtonComponent } from '@shared/button/custom-button';
   templateUrl: './ai-prompt-box.component.html',
 })
 export class AiPromptBoxComponent {
+  public readonly i18n = inject(I18nService);
   public readonly topic = input<string>('');
   public readonly prompt = input<string>('');
   public readonly copied = input<boolean>(false);

@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomInputComponent } from '@shared/input/custom-input';
@@ -31,6 +32,7 @@ import { ImportFacade } from './import.facade';
 })
 export class ImportComponent {
   protected readonly facade = inject(ImportFacade);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly importMode = this.facade.importMode;
   protected readonly listMode = this.facade.listMode;

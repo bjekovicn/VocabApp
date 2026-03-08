@@ -3,22 +3,22 @@
     <!-- Header -->
     <div>
       <h1 class="text-3xl font-bold text-gray-900">{{ pageTitle() }}</h1>
-      <p class="text-gray-600">Dodaj reč i kviz opcije</p>
+      <p class="text-gray-600">{{ i18n.t('wordForm.subtitle') }}</p>
     </div>
 
     <app-custom-card>
       <div class="flex flex-col space-y-3">
         <!-- Lista + Kategorija -->
         <app-custom-select
-          label="Lista"
-          placeholder="Izaberi listu"
+          [label]="i18n.t('wordForm.list')"
+          [placeholder]="i18n.t('wordForm.selectList')"
           [options]="listOptions()"
           [value]="listId()"
           (valueChange)="setList($event)"
         />
         <app-custom-select
-          label="Kategorija"
-          placeholder="Izaberi kategoriju"
+          [label]="i18n.t('wordForm.category')"
+          [placeholder]="i18n.t('wordForm.selectCategory')"
           [options]="categoryOptions()"
           [value]="category() ?? ''"
           (valueChange)="setCategory($event)"
@@ -30,13 +30,13 @@
           <div class="grid grid-cols-2 gap-4">
             <app-custom-input
               [label]="langs.source"
-              placeholder="Reč"
+              [placeholder]="i18n.t('wordForm.word')"
               [value]="sourceText()"
               (valueChange)="sourceText.set($event)"
             />
             <app-custom-input
               [label]="langs.target"
-              placeholder="Prevod"
+              [placeholder]="i18n.t('wordForm.translation')"
               [value]="targetText()"
               (valueChange)="targetText.set($event)"
             />
@@ -45,7 +45,7 @@
           <!-- Quiz sekcija -->
           <div class="border-t pt-6">
             <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-5">
-              Pogrešni odgovori za kviz
+              {{ i18n.t('wordForm.quizDistractors') }}
             </h3>
 
             <app-quiz-distractors-editor
@@ -60,11 +60,11 @@
 
           <!-- Beleška -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-gray-700">Beleška (opciono)</label>
+            <label class="text-sm font-medium text-gray-700">{{ i18n.t('words.noteOptional') }}</label>
             <textarea
               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows="3"
-              placeholder="Šta te asocira na ovu reč..."
+              [placeholder]="i18n.t('words.notePlaceholder')"
               [value]="note()"
               (input)="note.set($any($event.target).value)"
             ></textarea>
@@ -78,7 +78,13 @@
               [disabled]="!isValid() || isSaving()"
               (clicked)="handleSubmit()"
             >
-              {{ isSaving() ? 'Čuvanje...' : isEditMode() ? 'Sačuvaj izmene' : 'Dodaj reč' }}
+              {{
+                isSaving()
+                  ? i18n.t('common.saving')
+                  : isEditMode()
+                    ? i18n.t('common.saveChanges')
+                    : i18n.t('wordForm.add')
+              }}
             </app-custom-button>
             <app-custom-button
               variant="secondary"
@@ -86,7 +92,7 @@
               [disabled]="isSaving()"
               (clicked)="handleCancel()"
             >
-              Otkaži
+              {{ i18n.t('common.cancel') }}
             </app-custom-button>
           </div>
         } @else {
@@ -95,12 +101,12 @@
             class="flex flex-col items-center justify-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl"
           >
             <span class="text-3xl mb-2">📋</span>
-            <p class="text-sm">Izaberi listu da bi uneo reč</p>
+            <p class="text-sm">{{ i18n.t('wordForm.chooseListPrompt') }}</p>
           </div>
 
           <div class="flex justify-end">
             <app-custom-button variant="secondary" (clicked)="handleCancel()">
-              Otkaži
+              {{ i18n.t('common.cancel') }}
             </app-custom-button>
           </div>
         }

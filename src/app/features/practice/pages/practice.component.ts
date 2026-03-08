@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomSelectComponent } from '@shared/select/custom-select';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomCardComponent } from '@shared/card/custom-card';
@@ -33,6 +34,7 @@ export class PracticeComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly facade = inject(PracticeFacade);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly state = this.facade.state;
   protected readonly errorMessage = this.facade.errorMessage;

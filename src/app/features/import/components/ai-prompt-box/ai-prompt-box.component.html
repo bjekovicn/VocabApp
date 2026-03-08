@@ -7,20 +7,17 @@
     <div class="flex-1">
       <div class="flex items-center gap-2 md:gap-0 mb-3">
         <div class="text-2xl md:hidden">🤖</div>
-        <h2 class="text-base md:text-lg font-semibold text-gray-900">Generiši reči pomoću AI-a</h2>
+        <h2 class="text-base md:text-lg font-semibold text-gray-900">{{ i18n.t('import.aiTitle') }}</h2>
       </div>
 
       <div class="space-y-3 text-sm text-gray-700">
-        <p class="font-medium text-gray-900">📝 Koraci:</p>
+        <p class="font-medium text-gray-900">📝 {{ i18n.t('import.aiSteps') }}</p>
         <ol class="list-decimal list-inside space-y-2 ml-2 text-gray-700">
-          <li>
-            Kliknite na dugme
-            <span class="font-semibold text-blue-700">"Kopiraj prompt"</span> ispod
-          </li>
-          <li>Otvorite vaš AI model (Claude, ChatGPT, Gemini...)</li>
-          <li>Nalepite prompt i pošaljite zahtev</li>
-          <li>Kopirajte generisani JSON odgovor</li>
-          <li>Nalepite JSON u polje ispod i kliknite "Importuj"</li>
+          <li>{{ i18n.t('import.aiStep1') }}</li>
+          <li>{{ i18n.t('import.aiStep2') }}</li>
+          <li>{{ i18n.t('import.aiStep3') }}</li>
+          <li>{{ i18n.t('import.aiStep4') }}</li>
+          <li>{{ i18n.t('import.aiStep5') }}</li>
         </ol>
 
         <div
@@ -28,8 +25,7 @@
         >
           <span class="text-base md:text-lg shrink-0">💡</span>
           <span class="wrap-break-word">
-            AI će generisati reči na temu:
-            <strong class="text-blue-700">{{ topic() }}</strong>
+            {{ i18n.t('import.aiTopic', { topic: topic() }) }}
           </span>
         </div>
       </div>
@@ -43,14 +39,14 @@
       [topIcon]="copied() ? '✅' : '📋'"
       (clicked)="copyPrompt.emit()"
     >
-      {{ copied() ? 'Kopirano!' : 'Kopiraj prompt' }}
+      {{ copied() ? i18n.t('import.copied') : i18n.t('import.copyPrompt') }}
     </app-custom-button>
   </div>
 </div>
 
 <!-- PASTE JSON POLJE -->
 <div class="mt-6">
-  <label class="block text-sm font-medium text-gray-700 mb-2"> Nalepi AI odgovor ovde </label>
+  <label class="block text-sm font-medium text-gray-700 mb-2">{{ i18n.t('import.pasteResponse') }}</label>
   <textarea
     [value]="pastedJson()"
     (input)="jsonChange.emit($any($event).target.value)"

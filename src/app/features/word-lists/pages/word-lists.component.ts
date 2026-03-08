@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
-import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomSelectComponent } from '@shared/select/custom-select';
@@ -44,15 +44,16 @@ export class WordListsPage {
   private readonly storage = inject(StorageService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
+  public readonly i18n = inject(I18nService);
 
   public readonly selectedSort = signal<ListSortOption>('name-asc');
-  public readonly sortOptions = signal<SelectOption[]>([
-    { value: 'name-asc', label: 'Naziv A-Z' },
-    { value: 'name-desc', label: 'Naziv Z-A' },
-    { value: 'least-used', label: 'Najmanje korišćene' },
-    { value: 'most-used', label: 'Najviše korišćene' },
-    { value: 'least-mastered', label: 'Najmanje savladane' },
-    { value: 'most-mastered', label: 'Najviše savladane' },
+  public readonly sortOptions = computed<SelectOption[]>(() => [
+    { value: 'name-asc', label: this.i18n.t('wordLists.sort.nameAsc') },
+    { value: 'name-desc', label: this.i18n.t('wordLists.sort.nameDesc') },
+    { value: 'least-used', label: this.i18n.t('wordLists.sort.leastUsed') },
+    { value: 'most-used', label: this.i18n.t('wordLists.sort.mostUsed') },
+    { value: 'least-mastered', label: this.i18n.t('wordLists.sort.leastMastered') },
+    { value: 'most-mastered', label: this.i18n.t('wordLists.sort.mostMastered') },
   ]);
   public readonly openMenuId = signal<string | null>(null);
   public readonly deleteModalListId = signal<string | null>(null);
@@ -65,7 +66,7 @@ export class WordListsPage {
         name: list.name,
         languagePair: list.languagePair,
         wordCount: insight.wordCount,
-        languagePairDisplay: this.getLanguagePairDisplay(list.languagePair),
+        languagePairDisplay: this.i18n.getLanguagePairDisplay(list.languagePair),
         studiedWordCount: insight.studiedWordCount,
         masteredWordCount: insight.masteredWordCount,
         coveragePercent: insight.coveragePercent,
@@ -159,7 +160,7 @@ export class WordListsPage {
       this.closeDeleteModal();
     } catch (error) {
       console.error('Error deleting list:', error);
-      alert('Greška pri brisanju liste');
+      alert(this.i18n.t('wordLists.deleteError'));
     }
   }
 
@@ -167,27 +168,20 @@ export class WordListsPage {
   // HELPERS
   // ================================
 
-  private getLanguagePairDisplay(languagePair: string): string {
-    const [source, target] = languagePair.split('-');
-    const sourceLang = SUPPORTED_LANGUAGES.find((l) => l.code === source);
-    const targetLang = SUPPORTED_LANGUAGES.find((l) => l.code === target);
-    return `${sourceLang?.flag || ''} ${sourceLang?.name || source} → ${targetLang?.flag || ''} ${targetLang?.name || target}`;
-  }
-
   private getLastActivityLabel(lastActivityDays: number | null): string {
     if (lastActivityDays === null) {
-      return 'Nikad vežbana';
+      return this.i18n.t('wordLists.lastActivity.never');
     }
 
     if (lastActivityDays <= 0) {
-      return 'Aktivna danas';
+      return this.i18n.t('wordLists.lastActivity.today');
     }
 
     if (lastActivityDays === 1) {
-      return 'Aktivna juče';
+      return this.i18n.t('wordLists.lastActivity.yesterday');
     }
 
-    return `Poslednja aktivnost pre ${lastActivityDays} dana`;
+    return this.i18n.t('wordLists.lastActivity.daysAgo', { count: lastActivityDays });
   }
 
   private getStatusLabel(
@@ -197,26 +191,26 @@ export class WordListsPage {
     lastActivityDays: number | null,
   ): string {
     if (wordCount === 0) {
-      return 'Prazna lista';
+      return this.i18n.t('wordLists.status.empty');
     }
 
     if (studiedWordCount === 0) {
-      return 'Nije započeta';
+      return this.i18n.t('wordLists.status.notStarted');
     }
 
     if (masteryPercent >= 80) {
-      return 'Dobro savladana';
+      return this.i18n.t('wordLists.status.mastered');
     }
 
     if (lastActivityDays !== null && lastActivityDays <= 3) {
-      return 'Aktivno koristiš';
+      return this.i18n.t('wordLists.status.active');
     }
 
     if (studiedWordCount === wordCount) {
-      return 'Sve pregledano';
+      return this.i18n.t('wordLists.status.reviewed');
     }
 
-    return 'U toku';
+    return this.i18n.t('wordLists.status.inProgress');
   }
 
   private getStatusClass(

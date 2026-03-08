@@ -7,22 +7,22 @@ export type PracticeMode =
 export const PRACTICE_MODES = [
   {
     value: 'flip-card-source-target',
-    label: 'Flip Card: Source → Target',
-    description: 'Vidi nemačku reč, pogađaj srpski prevod',
+    labelKey: 'practiceMode.flipCardSourceTarget.label',
+    descriptionKey: 'practiceMode.flipCardSourceTarget.description',
   },
   {
     value: 'flip-card-target-source',
-    label: 'Flip Card: Target → Source',
-    description: 'Vidi srpski prevod, pogađaj nemačku reč',
+    labelKey: 'practiceMode.flipCardTargetSource.label',
+    descriptionKey: 'practiceMode.flipCardTargetSource.description',
   },
   {
     value: 'quiz-source-target',
-    label: 'Quiz: Source → Target',
-    description: 'Birај tačan prevod od 3 opcije',
+    labelKey: 'practiceMode.quizSourceTarget.label',
+    descriptionKey: 'practiceMode.quizSourceTarget.description',
   },
   {
     value: 'quiz-target-source',
-    label: 'Quiz: Target → Source',
-    description: 'Birај tačnu reč od 3 opcije',
+    labelKey: 'practiceMode.quizTargetSource.label',
+    descriptionKey: 'practiceMode.quizTargetSource.description',
   },
 ];

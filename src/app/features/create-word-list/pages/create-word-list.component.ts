@@ -5,6 +5,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { of, switchMap } from 'rxjs';
 import { StorageService } from '@core/services/abstractions/storage.service';
 import { SUPPORTED_LANGUAGES, LanguagePair } from '@core/models/language.model';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomInputComponent } from '@shared/input/custom-input';
@@ -26,6 +27,7 @@ import { SelectOption } from '@shared/select/custom-select.types';
 export class CreateWordListPage {
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
+  public readonly i18n = inject(I18nService);
 
   public readonly id = input<string | null>(null);
   private readonly currentList = toSignal(
@@ -37,17 +39,17 @@ export class CreateWordListPage {
 
   public readonly isEditMode = computed(() => this.id() !== null);
   public readonly pageTitle = computed(() =>
-    this.isEditMode() ? 'Izmeni Listu' : 'Kreiraj Novu Listu',
+    this.isEditMode() ? this.i18n.t('listForm.editTitle') : this.i18n.t('listForm.createTitle'),
   );
 
   public readonly name = signal('');
   public readonly sourceLanguage = signal('');
   public readonly targetLanguage = signal('');
 
-  public readonly languageOptions = signal<SelectOption[]>(
+  public readonly languageOptions = computed<SelectOption[]>(() =>
     SUPPORTED_LANGUAGES.map((lang) => ({
       value: lang.code,
-      label: `${lang.flag} ${lang.name}`,
+      label: this.i18n.getLanguageDisplay(lang.code),
     })),
   );
 
@@ -96,7 +98,7 @@ export class CreateWordListPage {
       this.router.navigate(['/word-lists']);
     } catch (error) {
       console.error('Error saving list:', error);
-      alert('Greška pri čuvanju liste');
+      alert(this.i18n.t('listForm.saveError'));
     } finally {
       this.isSaving.set(false);
     }

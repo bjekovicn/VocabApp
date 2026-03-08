@@ -1,5 +1,5 @@
 <div>
-  <label class="block text-sm font-medium text-gray-700 mb-2">Način Importa</label>
+  <label class="block text-sm font-medium text-gray-700 mb-2">{{ i18n.t('import.mode') }}</label>
   <div class="flex gap-4">
     <app-custom-button
       variant="primary"
@@ -9,7 +9,7 @@
       (clicked)="modeChange.emit('paste')"
       [leftIcon]="'📋'"
     >
-      Nalepi AI odgovor
+      {{ i18n.t('import.mode.paste') }}
     </app-custom-button>
 
     <app-custom-button
@@ -20,7 +20,7 @@
       (clicked)="modeChange.emit('file')"
       [leftIcon]="'📁'"
     >
-      Upload Fajl
+      {{ i18n.t('import.mode.file') }}
     </app-custom-button>
   </div>
 </div>

@@ -2,11 +2,11 @@
   <div class="mb-6 sm:mb-8 px-2 sm:px-0">
     <div class="flex justify-between items-center gap-4 flex-wrap">
       <h1 class="text-lg sm:text-2xl font-bold text-gray-900">
-        Reč {{ currentIndex() + 1 }} / {{ words().length }}
+        {{ i18n.t('practice.wordProgress', { current: currentIndex() + 1, total: words().length }) }}
       </h1>
 
       <app-custom-button variant="secondary" (clicked)="finished.emit(results())">
-        Završi
+        {{ i18n.t('practice.finish') }}
       </app-custom-button>
     </div>
 
@@ -29,7 +29,7 @@
               {{ questionText() }}
             </div>
 
-            <p class="text-gray-500 text-sm sm:text-base">↻ Klikni da okreneš karticu</p>
+            <p class="text-gray-500 text-sm sm:text-base">↻ {{ i18n.t('practice.flip.clickReveal') }}</p>
           </div>
 
           <div class="flex flex-col gap-3 mt-6">
@@ -38,7 +38,7 @@
                 variant="secondary"
                 (clicked)="revealHint(); $event.stopPropagation()"
               >
-                💡 Hint
+                💡 {{ i18n.t('practice.flip.hint') }}
               </app-custom-button>
             } @else {
               <div class="h-10"></div>
@@ -60,16 +60,16 @@
               {{ answerText() }}
             </div>
 
-            <p class="text-gray-500 text-sm sm:text-base">↻ Klikni da vratiš karticu</p>
+            <p class="text-gray-500 text-sm sm:text-base">↻ {{ i18n.t('practice.flip.clickBack') }}</p>
           </div>
 
           <div class="flex flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
             <app-custom-button variant="danger" class="w-full" (clicked)="handleAnswer(false)">
-              Ne znam
+              {{ i18n.t('practice.flip.dontKnow') }}
             </app-custom-button>
 
             <app-custom-button variant="primary" class="w-full" (clicked)="handleAnswer(true)">
-              Znam
+              {{ i18n.t('practice.flip.know') }}
             </app-custom-button>
           </div>
 

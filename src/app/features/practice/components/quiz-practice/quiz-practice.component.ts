@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Word } from '@core/models/word.model';
 import { PracticeMode } from '@core/models/practice-mode.model';
 import { PracticeResult } from '@core/models/practice-session.model';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 
@@ -18,6 +19,7 @@ interface QuizOption {
   templateUrl: './quiz-practice.component.html',
 })
 export class QuizPracticeComponent {
+  public readonly i18n = inject(I18nService);
   public readonly words = input.required<Word[]>();
   public readonly mode = input.required<PracticeMode>();
   public readonly finished = output<PracticeResult[]>();

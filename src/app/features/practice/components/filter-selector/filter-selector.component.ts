@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 
 export interface FilterOption {
   value: 'all' | 'weakest' | 'forgotten' | 'new' | 'mastered';
@@ -17,6 +18,7 @@ export interface FilterOption {
   templateUrl: './filter-selector.component.html',
 })
 export class FilterSelectorComponent {
+  public readonly i18n = inject(I18nService);
   public readonly selected = input<'all' | 'weakest' | 'forgotten' | 'new' | 'mastered'>('all');
   public readonly options = input<FilterOption[]>([]);
   public readonly selectedChange = output<'all' | 'weakest' | 'forgotten' | 'new' | 'mastered'>();

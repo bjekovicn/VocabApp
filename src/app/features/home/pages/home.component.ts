@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
+import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { Word } from '@core/models/word.model';
@@ -38,6 +39,7 @@ export class HomePage {
   private readonly spacedRepetition = inject(SpacedRepetitionService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
+  public readonly i18n = inject(I18nService);
 
   private readonly words = this.vocabulary.words;
 
@@ -120,116 +122,116 @@ export class HomePage {
 
   public readonly focusTitle = computed(() => {
     if (this.totalWords() === 0) {
-      return 'Dodaj prve reči';
+      return this.i18n.t('home.focus.empty.title');
     }
 
     if (this.dueToday() > 0) {
-      return 'Fokus za danas je obnova';
+      return this.i18n.t('home.focus.review.title');
     }
 
     if (this.weak() > 0) {
-      return 'Imaš nekoliko slabih tačaka';
+      return this.i18n.t('home.focus.weak.title');
     }
 
     if (this.newWords() > 0) {
-      return 'Dobar trenutak za nove reči';
+      return this.i18n.t('home.focus.new.title');
     }
 
-    return 'Odličan tempo učenja';
+    return this.i18n.t('home.focus.good.title');
   });
 
   public readonly focusDescription = computed(() => {
     if (this.totalWords() === 0) {
-      return 'Kreni dodavanjem prve liste ili importom, pa zatim započni vežbanje.';
+      return this.i18n.t('home.focus.empty.description');
     }
 
     if (this.dueToday() > 0) {
-      return `Imaš ${this.dueToday()} reči spremnih za ponavljanje. Njih vredi odraditi pre novih pojmova.`;
+      return this.i18n.t('home.focus.review.description', { count: this.dueToday() });
     }
 
     if (this.weak() > 0) {
-      return `${this.weak()} reči ti još prave problem. Kratka sesija slabih reči će najbrže popraviti rezultat.`;
+      return this.i18n.t('home.focus.weak.description', { count: this.weak() });
     }
 
     if (this.newWords() > 0) {
-      return `${this.newWords()} reči još nisu započete, pa možeš mirno da proširiš fond.`;
+      return this.i18n.t('home.focus.new.description', { count: this.newWords() });
     }
 
-    return 'Trenutno nema hitnih stavki. Možeš da odradiš kratko održavanje ili da dodaš nov sadržaj.';
+    return this.i18n.t('home.focus.good.description');
   });
 
   public readonly focusActionLabel = computed(() => {
     if (this.totalWords() === 0) {
-      return 'Dodaj prve reči';
+      return this.i18n.t('home.focus.empty.action');
     }
 
     if (this.dueToday() > 0) {
-      return 'Vežbaj obnovu';
+      return this.i18n.t('home.focus.review.action');
     }
 
     if (this.weak() > 0) {
-      return 'Utvrdi slabe reči';
+      return this.i18n.t('home.focus.weak.action');
     }
 
     if (this.newWords() > 0) {
-      return 'Vežbaj nove reči';
+      return this.i18n.t('home.focus.new.action');
     }
 
-    return 'Ponovi savladane';
+    return this.i18n.t('home.focus.good.action');
   });
 
   public readonly overviewCards = computed<DashboardHighlight[]>(() => [
     {
-      title: 'Za fokus danas',
+      title: this.i18n.t('home.card.focusToday.title'),
       value: this.dueToday(),
-      subtitle: 'reči čekaju ponavljanje',
+      subtitle: this.i18n.t('home.card.focusToday.subtitle'),
       hint:
         this.dueToday() > 0
-          ? 'Najveći efekat daje kratka sesija ponavljanja.'
-          : 'Nema hitnih obnova za danas.',
+          ? this.i18n.t('home.card.focusToday.hint.active')
+          : this.i18n.t('home.card.focusToday.hint.empty'),
       progressPercent: this.dueTodayPercent(),
       valueClass: 'text-primary-700',
       progressClass: 'bg-primary-500',
-      actionLabel: 'Vežbaj obnovu',
+      actionLabel: this.i18n.t('home.card.focusToday.action'),
       practiceFilter: 'forgotten',
     },
     {
-      title: 'Nove reči',
+      title: this.i18n.t('home.card.newWords.title'),
       value: this.newWords(),
-      subtitle: 'još nisu započete',
+      subtitle: this.i18n.t('home.card.newWords.subtitle'),
       hint:
         this.newWords() > 0
-          ? `${this.newWordsPercent()}% kolekcije još čeka prvi prolaz.`
-          : 'Sve reči su makar jednom obrađene.',
+          ? this.i18n.t('home.card.newWords.hint.active', { percent: this.newWordsPercent() })
+          : this.i18n.t('home.card.newWords.hint.empty'),
       progressPercent: this.newWordsPercent(),
       valueClass: 'text-sky-700',
       progressClass: 'bg-sky-500',
-      actionLabel: 'Vežbaj nove',
+      actionLabel: this.i18n.t('home.card.newWords.action'),
       practiceFilter: 'new',
     },
     {
-      title: 'Potrebno utvrđivanje',
+      title: this.i18n.t('home.card.weak.title'),
       value: this.weak(),
-      subtitle: 'reči traže dodatnu pažnju',
+      subtitle: this.i18n.t('home.card.weak.subtitle'),
       hint:
         this.weak() > 0
-          ? 'Ovde najbrže dobijaš osećaj napretka.'
-          : 'Nema izraženih slabih reči trenutno.',
+          ? this.i18n.t('home.card.weak.hint.active')
+          : this.i18n.t('home.card.weak.hint.empty'),
       progressPercent: this.weakPercent(),
       valueClass: 'text-amber-700',
       progressClass: 'bg-amber-500',
-      actionLabel: 'Vežbaj slabe',
+      actionLabel: this.i18n.t('home.card.weak.action'),
       practiceFilter: 'weakest',
     },
     {
-      title: 'Savladano',
+      title: this.i18n.t('home.card.mastered.title'),
       value: this.mastered(),
-      subtitle: 'reči su stabilne',
-      hint: `${this.masteryPercent()}% cele kolekcije je trenutno u dobroj formi.`,
+      subtitle: this.i18n.t('home.card.mastered.subtitle'),
+      hint: this.i18n.t('home.ofEntireCollection', { percent: this.masteryPercent() }),
       progressPercent: this.masteryPercent(),
       valueClass: 'text-emerald-700',
       progressClass: 'bg-emerald-500',
-      actionLabel: 'Ponovi savladane',
+      actionLabel: this.i18n.t('home.card.mastered.action'),
       practiceFilter: 'mastered',
     },
   ]);
@@ -240,7 +242,7 @@ export class HomePage {
 
     return WORD_CATEGORIES.map((cat) => ({
       category: cat.value,
-      label: cat.label,
+      label: this.i18n.getCategoryLabel(cat.value),
       total: words.filter((w) => w.category === cat.value).length,
       dueToday: words.filter(
         (w) =>
