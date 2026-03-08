@@ -2,7 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface FilterOption {
-  value: 'all' | 'weakest' | 'forgotten' | 'new';
+  value: 'all' | 'weakest' | 'forgotten' | 'new' | 'mastered';
   label: string;
   icon: string;
   count: number;
@@ -17,9 +17,9 @@ export interface FilterOption {
   templateUrl: './filter-selector.component.html',
 })
 export class FilterSelectorComponent {
-  public readonly selected = input<'all' | 'weakest' | 'forgotten' | 'new'>('all');
+  public readonly selected = input<'all' | 'weakest' | 'forgotten' | 'new' | 'mastered'>('all');
   public readonly options = input<FilterOption[]>([]);
-  public readonly selectedChange = output<'all' | 'weakest' | 'forgotten' | 'new'>();
+  public readonly selectedChange = output<'all' | 'weakest' | 'forgotten' | 'new' | 'mastered'>();
 
   public getColorClass(
     isSelected: boolean,
@@ -55,6 +55,9 @@ export class FilterSelectorComponent {
       } else if (color === 'green') {
         classes['bg-green-100'] = true;
         classes['text-green-600'] = true;
+      } else if (color === 'blue') {
+        classes['bg-blue-100'] = true;
+        classes['text-blue-600'] = true;
       } else {
         classes['bg-gray-100'] = true;
         classes['text-gray-500'] = true;

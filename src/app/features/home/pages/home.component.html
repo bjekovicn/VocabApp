@@ -1,41 +1,157 @@
 <div class="min-h-screen bg-gray-50 p-6">
   <div class="max-w-7xl mx-auto">
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
-      <p class="text-gray-600">Dobrodošao nazad! Vreme je za učenje.</p>
+      <h1 class="mb-2 text-4xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-gray-600">
+        Pregled onoga što je bitno danas i koliko ti je fond reči zaista u formi.
+      </p>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <app-custom-card>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-primary-600">{{ dueToday() }}</div>
-          <div class="text-sm text-gray-600 mt-2">Reči za danas</div>
-        </div>
-      </app-custom-card>
+    <app-custom-card
+      class="mb-8 overflow-hidden border-0 bg-linear-to-r from-primary-700 via-primary-600 to-sky-600 text-white shadow-lg"
+    >
+      <div class="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+        <div>
+          <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/70">Danas</p>
+          <h2 class="mb-3 text-3xl font-bold">{{ focusTitle() }}</h2>
+          <p class="max-w-2xl text-sm leading-6 text-white/85">
+            {{ focusDescription() }}
+          </p>
 
-      <app-custom-card>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-blue-600">{{ newWords() }}</div>
-          <div class="text-sm text-gray-600 mt-2">Nove reči</div>
-        </div>
-      </app-custom-card>
+          <div class="mt-5">
+            <app-custom-button
+              variant="secondary"
+              class="border-white/20 bg-white text-primary-700 hover:bg-primary-50"
+              (clicked)="navigateFromFocus()"
+            >
+              {{ focusActionLabel() }}
+            </app-custom-button>
+          </div>
 
-      <app-custom-card>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-red-500">{{ weak() }}</div>
-          <div class="text-sm text-gray-600 mt-2">Slabe reči</div>
+          <div class="mt-6 grid gap-4 sm:grid-cols-3">
+            <div class="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <p class="text-xs uppercase tracking-wide text-white/70">Ukupno reči</p>
+              <p class="mt-2 text-3xl font-bold">{{ totalWords() }}</p>
+            </div>
+            <div class="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <p class="text-xs uppercase tracking-wide text-white/70">Obrađeno</p>
+              <p class="mt-2 text-3xl font-bold">{{ studiedWords() }}</p>
+              <p class="mt-1 text-xs text-white/70">{{ studiedPercent() }}% kolekcije</p>
+            </div>
+            <div class="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <p class="text-xs uppercase tracking-wide text-white/70">Savladano</p>
+              <p class="mt-2 text-3xl font-bold">{{ mastered() }}</p>
+              <p class="mt-1 text-xs text-white/70">{{ masteryPercent() }}% kolekcije</p>
+            </div>
+          </div>
         </div>
-      </app-custom-card>
 
-      <app-custom-card>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-green-600">{{ mastered() }}</div>
-          <div class="text-sm text-gray-600 mt-2">Savladane</div>
+        <div class="rounded-3xl bg-white/10 p-5 backdrop-blur-sm">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-white">Napredak kolekcije</p>
+              <p class="text-xs text-white/70">Brz pregled stanja fonda reči</p>
+            </div>
+            <span class="rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white/90">
+              {{ totalWords() }} reči
+            </span>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <div class="mb-2 flex items-center justify-between text-sm">
+                <span class="text-white/75">Obrađeno</span>
+                <span class="font-semibold text-white">{{ studiedPercent() }}%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/15">
+                <div
+                  class="h-full rounded-full bg-white transition-all duration-300"
+                  [style.width.%]="studiedPercent()"
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex items-center justify-between text-sm">
+                <span class="text-white/75">Savladano</span>
+                <span class="font-semibold text-white">{{ masteryPercent() }}%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/15">
+                <div
+                  class="h-full rounded-full bg-emerald-300 transition-all duration-300"
+                  [style.width.%]="masteryPercent()"
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex items-center justify-between text-sm">
+                <span class="text-white/75">Za ponavljanje danas</span>
+                <span class="font-semibold text-white">{{ dueTodayPercent() }}%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/15">
+                <div
+                  class="h-full rounded-full bg-amber-300 transition-all duration-300"
+                  [style.width.%]="dueTodayPercent()"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          @if (topCategory(); as category) {
+            <div class="mt-5 rounded-2xl border border-white/15 bg-white/10 p-4">
+              <p class="text-xs uppercase tracking-wide text-white/65">Najveća kategorija</p>
+              <p class="mt-1 text-lg font-semibold text-white">{{ category.label }}</p>
+              <p class="mt-1 text-sm text-white/75">
+                {{ category.total }} reči • {{ category.sharePercent }}% kolekcije
+              </p>
+            </div>
+          }
         </div>
-      </app-custom-card>
+      </div>
+    </app-custom-card>
+
+    <div class="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      @for (card of overviewCards(); track card.title) {
+        <app-custom-card class="h-full border-0 shadow-md">
+          <div class="flex h-full flex-col">
+            <p class="text-sm font-semibold text-gray-700">{{ card.title }}</p>
+            <div class="mt-3 flex items-end justify-between gap-3">
+              <div>
+                <p class="text-4xl font-bold" [class]="card.valueClass">{{ card.value }}</p>
+                <p class="mt-1 text-sm text-gray-500">{{ card.subtitle }}</p>
+              </div>
+              <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                {{ card.progressPercent }}%
+              </span>
+            </div>
+
+            <div class="mt-4 h-2 overflow-hidden rounded-full bg-gray-100">
+              <div
+                class="h-full rounded-full transition-all duration-300"
+                [class]="card.progressClass"
+                [style.width.%]="card.progressPercent"
+              ></div>
+            </div>
+
+            <p class="mt-3 flex-1 text-sm leading-6 text-gray-500">{{ card.hint }}</p>
+
+            <div class="mt-4">
+              <app-custom-button
+                variant="secondary"
+                [fullWidth]="true"
+                [disabled]="card.value === 0"
+                (clicked)="navigateToPracticeWithFilter(card.practiceFilter)"
+              >
+                {{ card.actionLabel }}
+              </app-custom-button>
+            </div>
+          </div>
+        </app-custom-card>
+      }
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <app-custom-button variant="primary" [fullWidth]="true" (clicked)="navigateToPractice()">
         Počni učenje
       </app-custom-button>
@@ -50,13 +166,51 @@
       </app-custom-button>
     </div>
 
-    <app-custom-card class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">Kategorije</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <app-custom-card class="border-0 shadow-md">
+      <div class="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Raspodela po kategorijama</h2>
+          <p class="text-sm text-gray-500">Gde ti je najveći fond i gde te čeka najviše obnova.</p>
+        </div>
+        <div class="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
+          {{ categoryStats().length }} kategorije
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         @for (stat of categoryStats(); track stat.category) {
-          <div class="border border-gray-200 rounded-lg p-4">
-            <div class="text-sm font-medium text-gray-700 mb-2">{{ stat.label }}</div>
-            <span class="text-2xl font-bold text-gray-900">{{ stat.total }}</span>
+          <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <div class="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-gray-800">{{ stat.label }}</p>
+                <p class="mt-1 text-xs text-gray-500">{{ stat.sharePercent }}% ukupne kolekcije</p>
+              </div>
+              @if (stat.dueToday > 0) {
+                <span
+                  class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700"
+                >
+                  {{ stat.dueToday }} danas
+                </span>
+              } @else {
+                <span
+                  class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700"
+                >
+                  Mirno
+                </span>
+              }
+            </div>
+
+            <div class="mb-2 flex items-center justify-between">
+              <span class="text-3xl font-bold text-gray-900">{{ stat.total }}</span>
+              <span class="text-sm text-gray-500">reči</span>
+            </div>
+
+            <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+              <div
+                class="h-full rounded-full bg-primary-500 transition-all duration-300"
+                [style.width.%]="stat.sharePercent"
+              ></div>
+            </div>
           </div>
         }
       </div>

@@ -41,6 +41,13 @@
               [options]="listOptions()"
               [(value)]="selectedListId"
             />
+
+            @if (selectedListSummary(); as listSummary) {
+              <p class="text-sm text-gray-500">
+                {{ listSummary.wordCount }} reči • {{ listSummary.coveragePercent }}% obrađeno •
+                {{ listSummary.masteryPercent }}% savladano • {{ listSummary.lastActivityLabel }}
+              </p>
+            }
           </div>
 
           <!-- Filter Selector -->
@@ -58,7 +65,7 @@
               [disabled]="availableWords().length === 0"
               (clicked)="startPractice()"
             >
-              Počni Vežbanje
+              {{ startButtonLabel() }}
               @if (availableWords().length > 0) {
                 <span class="ml-2 text-sm opacity-75">({{ availableWords().length }} reči)</span>
               }

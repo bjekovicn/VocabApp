@@ -6,11 +6,38 @@ import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { SUPPORTED_LANGUAGES } from '@core/models/language.model';
 import { CustomCardComponent } from '@shared/card/custom-card';
 import { CustomButtonComponent } from '@shared/button/custom-button';
+import { CustomSelectComponent } from '@shared/select/custom-select';
+import { SelectOption } from '@shared/select/custom-select.types';
+
+type ListSortOption =
+  | 'name-asc'
+  | 'name-desc'
+  | 'least-used'
+  | 'most-used'
+  | 'least-mastered'
+  | 'most-mastered';
+
+interface WordListProgressViewModel {
+  id: string;
+  name: string;
+  languagePair: string;
+  wordCount: number;
+  languagePairDisplay: string;
+  studiedWordCount: number;
+  masteredWordCount: number;
+  coveragePercent: number;
+  masteryPercent: number;
+  lastActivityDays: number | null;
+  lastActivityLabel: string;
+  statusLabel: string;
+  statusClass: string;
+  progressBarClass: string;
+}
 
 @Component({
   selector: 'app-word-lists-page',
   standalone: true,
-  imports: [CommonModule, CustomCardComponent, CustomButtonComponent],
+  imports: [CommonModule, CustomCardComponent, CustomButtonComponent, CustomSelectComponent],
   templateUrl: './word-lists.component.html',
 })
 export class WordListsPage {
@@ -18,16 +45,69 @@ export class WordListsPage {
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
 
-  public readonly lists = computed(() => {
-    return this.vocabulary.sortedWordLists().map((list) => ({
-      ...list,
-      wordCount: this.vocabulary.getWordCountForList(list.id),
-      languagePairDisplay: this.getLanguagePairDisplay(list.languagePair),
-    }));
-  });
-
+  public readonly selectedSort = signal<ListSortOption>('name-asc');
+  public readonly sortOptions = signal<SelectOption[]>([
+    { value: 'name-asc', label: 'Naziv A-Z' },
+    { value: 'name-desc', label: 'Naziv Z-A' },
+    { value: 'least-used', label: 'Najmanje korišćene' },
+    { value: 'most-used', label: 'Najviše korišćene' },
+    { value: 'least-mastered', label: 'Najmanje savladane' },
+    { value: 'most-mastered', label: 'Najviše savladane' },
+  ]);
   public readonly openMenuId = signal<string | null>(null);
   public readonly deleteModalListId = signal<string | null>(null);
+  private readonly listViewModels = computed<WordListProgressViewModel[]>(() =>
+    this.vocabulary.sortedWordLists().map((list) => {
+      const insight = this.vocabulary.getWordListInsight(list.id);
+
+      return {
+        id: list.id,
+        name: list.name,
+        languagePair: list.languagePair,
+        wordCount: insight.wordCount,
+        languagePairDisplay: this.getLanguagePairDisplay(list.languagePair),
+        studiedWordCount: insight.studiedWordCount,
+        masteredWordCount: insight.masteredWordCount,
+        coveragePercent: insight.coveragePercent,
+        masteryPercent: insight.masteryPercent,
+        lastActivityDays: insight.lastActivityDays,
+        lastActivityLabel: this.getLastActivityLabel(insight.lastActivityDays),
+        statusLabel: this.getStatusLabel(
+          insight.wordCount,
+          insight.studiedWordCount,
+          insight.masteryPercent,
+          insight.lastActivityDays,
+        ),
+        statusClass: this.getStatusClass(
+          insight.wordCount,
+          insight.studiedWordCount,
+          insight.masteryPercent,
+          insight.lastActivityDays,
+        ),
+        progressBarClass: this.getProgressBarClass(insight.coveragePercent, insight.masteryPercent),
+      };
+    }),
+  );
+  public readonly lists = computed<WordListProgressViewModel[]>(() => {
+    const sort = this.selectedSort();
+    const lists = this.listViewModels().slice();
+
+    switch (sort) {
+      case 'name-desc':
+        return lists.sort((a, b) => b.name.localeCompare(a.name));
+      case 'least-used':
+        return lists.sort((a, b) => this.compareLeastUsed(a, b));
+      case 'most-used':
+        return lists.sort((a, b) => this.compareMostUsed(a, b));
+      case 'least-mastered':
+        return lists.sort((a, b) => this.compareLeastMastered(a, b));
+      case 'most-mastered':
+        return lists.sort((a, b) => this.compareMostMastered(a, b));
+      case 'name-asc':
+      default:
+        return lists.sort((a, b) => a.name.localeCompare(b.name));
+    }
+  });
 
   // ================================
   // NAVIGACIJA
@@ -92,5 +172,145 @@ export class WordListsPage {
     const sourceLang = SUPPORTED_LANGUAGES.find((l) => l.code === source);
     const targetLang = SUPPORTED_LANGUAGES.find((l) => l.code === target);
     return `${sourceLang?.flag || ''} ${sourceLang?.name || source} → ${targetLang?.flag || ''} ${targetLang?.name || target}`;
+  }
+
+  private getLastActivityLabel(lastActivityDays: number | null): string {
+    if (lastActivityDays === null) {
+      return 'Nikad vežbana';
+    }
+
+    if (lastActivityDays <= 0) {
+      return 'Aktivna danas';
+    }
+
+    if (lastActivityDays === 1) {
+      return 'Aktivna juče';
+    }
+
+    return `Poslednja aktivnost pre ${lastActivityDays} dana`;
+  }
+
+  private getStatusLabel(
+    wordCount: number,
+    studiedWordCount: number,
+    masteryPercent: number,
+    lastActivityDays: number | null,
+  ): string {
+    if (wordCount === 0) {
+      return 'Prazna lista';
+    }
+
+    if (studiedWordCount === 0) {
+      return 'Nije započeta';
+    }
+
+    if (masteryPercent >= 80) {
+      return 'Dobro savladana';
+    }
+
+    if (lastActivityDays !== null && lastActivityDays <= 3) {
+      return 'Aktivno koristiš';
+    }
+
+    if (studiedWordCount === wordCount) {
+      return 'Sve pregledano';
+    }
+
+    return 'U toku';
+  }
+
+  private getStatusClass(
+    wordCount: number,
+    studiedWordCount: number,
+    masteryPercent: number,
+    lastActivityDays: number | null,
+  ): string {
+    if (wordCount === 0) {
+      return 'bg-gray-100 text-gray-700';
+    }
+
+    if (studiedWordCount === 0) {
+      return 'bg-amber-100 text-amber-700';
+    }
+
+    if (masteryPercent >= 80) {
+      return 'bg-green-100 text-green-700';
+    }
+
+    if (lastActivityDays !== null && lastActivityDays <= 3) {
+      return 'bg-blue-100 text-blue-700';
+    }
+
+    return 'bg-violet-100 text-violet-700';
+  }
+
+  private getProgressBarClass(coveragePercent: number, masteryPercent: number): string {
+    if (masteryPercent >= 80) {
+      return 'bg-green-500';
+    }
+
+    if (coveragePercent >= 50) {
+      return 'bg-blue-500';
+    }
+
+    if (coveragePercent > 0) {
+      return 'bg-amber-500';
+    }
+
+    return 'bg-gray-300';
+  }
+
+  private compareLeastUsed(a: WordListProgressViewModel, b: WordListProgressViewModel): number {
+    if (a.coveragePercent !== b.coveragePercent) {
+      return a.coveragePercent - b.coveragePercent;
+    }
+
+    const aDays = a.lastActivityDays ?? Number.MAX_SAFE_INTEGER;
+    const bDays = b.lastActivityDays ?? Number.MAX_SAFE_INTEGER;
+
+    if (aDays !== bDays) {
+      return bDays - aDays;
+    }
+
+    return a.name.localeCompare(b.name);
+  }
+
+  private compareMostUsed(a: WordListProgressViewModel, b: WordListProgressViewModel): number {
+    if (a.coveragePercent !== b.coveragePercent) {
+      return b.coveragePercent - a.coveragePercent;
+    }
+
+    const aDays = a.lastActivityDays ?? Number.MAX_SAFE_INTEGER;
+    const bDays = b.lastActivityDays ?? Number.MAX_SAFE_INTEGER;
+
+    if (aDays !== bDays) {
+      return aDays - bDays;
+    }
+
+    return a.name.localeCompare(b.name);
+  }
+
+  private compareMostMastered(a: WordListProgressViewModel, b: WordListProgressViewModel): number {
+    if (a.masteryPercent !== b.masteryPercent) {
+      return b.masteryPercent - a.masteryPercent;
+    }
+
+    if (a.masteredWordCount !== b.masteredWordCount) {
+      return b.masteredWordCount - a.masteredWordCount;
+    }
+
+    return a.name.localeCompare(b.name);
+  }
+
+  private compareLeastMastered(a: WordListProgressViewModel, b: WordListProgressViewModel): number {
+    if (a.masteryPercent !== b.masteryPercent) {
+      return a.masteryPercent - b.masteryPercent;
+    }
+
+    if (a.masteredWordCount !== b.masteredWordCount) {
+      return a.masteredWordCount - b.masteredWordCount;
+    }
+
+    return a.name.localeCompare(b.name);
   }
 }

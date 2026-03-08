@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CustomSelectComponent } from '@shared/select/custom-select';
 import { CustomButtonComponent } from '@shared/button/custom-button';
 import { CustomCardComponent } from '@shared/card/custom-card';
@@ -30,6 +30,7 @@ import { PracticeFacade } from './practice.facade';
   templateUrl: './practice.component.html',
 })
 export class PracticeComponent {
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly facade = inject(PracticeFacade);
 
@@ -43,9 +44,17 @@ export class PracticeComponent {
   protected readonly shuffleEnabled = this.facade.shuffleEnabled;
   protected readonly selectedFilter = this.facade.selectedFilter;
   protected readonly listOptions = this.facade.listOptions;
+  protected readonly selectedListSummary = this.facade.selectedListSummary;
   protected readonly filterOptions = this.facade.filterOptions;
   protected readonly availableWords = this.facade.availableWords;
   protected readonly stats = this.facade.stats;
+  protected readonly startButtonLabel = this.facade.startButtonLabel;
+
+  public constructor() {
+    this.route.queryParamMap.subscribe((params) => {
+      this.facade.applyPreset(params.get('filter'));
+    });
+  }
 
   public startPractice(): void {
     this.facade.startPractice();

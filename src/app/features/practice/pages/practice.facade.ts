@@ -12,7 +12,7 @@ import { FilterOption } from '../components/filter-selector/filter-selector.comp
 export type PracticeState = 'setup' | 'practicing' | 'results';
 export type PracticeDirection = 'source-target' | 'target-source';
 export type PracticeType = 'flip-card' | 'quiz';
-export type WordFilter = 'all' | 'weakest' | 'forgotten' | 'new';
+export type WordFilter = 'all' | 'weakest' | 'forgotten' | 'new' | 'mastered';
 
 @Injectable()
 export class PracticeFacade {
@@ -38,8 +38,41 @@ export class PracticeFacade {
 
   public readonly listOptions = computed<SelectOption[]>(() => [
     { value: 'all', label: 'Sve liste' },
-    ...this.vocabulary.sortedWordLists().map((list) => ({ value: list.id, label: list.name })),
+    ...this.vocabulary.sortedWordLists().map((list) => {
+      const insight = this.vocabulary.getWordListInsight(list.id);
+      const details =
+        insight.wordCount === 0
+          ? 'prazna lista'
+          : `${insight.wordCount} reči, ${insight.coveragePercent}% obrađeno, ${this.getLastActivityLabel(insight.lastActivityDays)}`;
+
+      return {
+        value: list.id,
+        label: `${list.name} (${details})`,
+      };
+    }),
   ]);
+
+  public readonly selectedListSummary = computed(() => {
+    const selectedListId = this.selectedListId();
+
+    if (selectedListId === 'all') {
+      return null;
+    }
+
+    const selectedList = this.vocabulary.getWordListById(selectedListId);
+    if (!selectedList) {
+      return null;
+    }
+
+    const insight = this.vocabulary.getWordListInsight(selectedListId);
+    return {
+      name: selectedList.name,
+      wordCount: insight.wordCount,
+      coveragePercent: insight.coveragePercent,
+      masteryPercent: insight.masteryPercent,
+      lastActivityLabel: this.getLastActivityLabel(insight.lastActivityDays),
+    };
+  });
 
   public readonly listFilteredWords = computed(() => {
     const selectedListId = this.selectedListId();
@@ -73,6 +106,12 @@ export class PracticeFacade {
           word[progressKey].repetitions > 0 &&
           (word[progressKey].easeFactor < 2.1 ||
             word[progressKey].incorrectCount > word[progressKey].correctCount),
+      ).length,
+      mastered: words.filter(
+        (word) =>
+          word[progressKey].repetitions > 0 &&
+          word[progressKey].easeFactor >= 2.5 &&
+          word[progressKey].correctCount >= word[progressKey].incorrectCount,
       ).length,
     };
   });
@@ -110,6 +149,14 @@ export class PracticeFacade {
       disabled: this.filterCounts().new === 0,
       color: 'green',
     },
+    {
+      value: 'mastered',
+      label: 'Savladane',
+      icon: '🏆',
+      count: this.filterCounts().mastered,
+      disabled: this.filterCounts().mastered === 0,
+      color: 'blue',
+    },
   ]);
 
   public readonly availableWords = computed(() => {
@@ -139,6 +186,15 @@ export class PracticeFacade {
                 word[progressKey].incorrectCount > word[progressKey].correctCount),
           )
           .sort((a, b) => a[progressKey].easeFactor - b[progressKey].easeFactor);
+      case 'mastered':
+        return words
+          .filter(
+            (word) =>
+              word[progressKey].repetitions > 0 &&
+              word[progressKey].easeFactor >= 2.5 &&
+              word[progressKey].correctCount >= word[progressKey].incorrectCount,
+          )
+          .sort((a, b) => b[progressKey].easeFactor - a[progressKey].easeFactor);
       case 'all':
       default:
         return words;
@@ -158,6 +214,22 @@ export class PracticeFacade {
     };
   });
 
+  public readonly startButtonLabel = computed(() => {
+    switch (this.selectedFilter()) {
+      case 'forgotten':
+        return 'Počni Obnovu';
+      case 'new':
+        return 'Počni Nove Reči';
+      case 'weakest':
+        return 'Počni Utvrđivanje';
+      case 'mastered':
+        return 'Ponovi Savladane';
+      case 'all':
+      default:
+        return 'Počni Vežbanje';
+    }
+  });
+
   public setDirection(direction: string): void {
     this.selectedDirection.set(direction as PracticeDirection);
     this.clearError();
@@ -175,6 +247,13 @@ export class PracticeFacade {
   public setFilter(filter: string): void {
     this.selectedFilter.set(filter as WordFilter);
     this.clearError();
+  }
+
+  public applyPreset(filter: string | null): void {
+    if (filter === 'all' || filter === 'weakest' || filter === 'forgotten' || filter === 'new' || filter === 'mastered') {
+      this.selectedFilter.set(filter);
+      this.clearError();
+    }
   }
 
   public startPractice(): void {
@@ -263,5 +342,21 @@ export class PracticeFacade {
       case 'quiz-target-source':
         return 'quizTargetToSource';
     }
+  }
+
+  private getLastActivityLabel(lastActivityDays: number | null): string {
+    if (lastActivityDays === null) {
+      return 'nikad vežbana';
+    }
+
+    if (lastActivityDays <= 0) {
+      return 'aktivna danas';
+    }
+
+    if (lastActivityDays === 1) {
+      return 'aktivna juče';
+    }
+
+    return `aktivna pre ${lastActivityDays} dana`;
   }
 }
