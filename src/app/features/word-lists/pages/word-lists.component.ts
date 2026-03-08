@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { StorageService } from '@core/services/abstractions/storage.service';
+import { LanguagePairFilterService } from '@core/services/language-pair-filter.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { I18nService } from '@core/services/i18n.service';
 import { CustomCardComponent } from '@shared/card/custom-card';
@@ -44,6 +45,7 @@ interface WordListProgressViewModel {
 })
 export class WordListsPage {
   private readonly storage = inject(StorageService);
+  private readonly languagePairFilter = inject(LanguagePairFilterService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
   public readonly i18n = inject(I18nService);
@@ -60,7 +62,10 @@ export class WordListsPage {
   public readonly openMenuId = signal<string | null>(null);
   public readonly deleteModalListId = signal<string | null>(null);
   private readonly listViewModels = computed<WordListProgressViewModel[]>(() =>
-    this.vocabulary.sortedWordLists().map((list) => {
+    this.vocabulary
+      .sortedWordLists()
+      .filter((list) => this.matchesLanguageFilters(list.languagePair))
+      .map((list) => {
       const insight = this.vocabulary.getWordListInsight(list.id);
 
       return {
@@ -312,5 +317,15 @@ export class WordListsPage {
     }
 
     return a.name.localeCompare(b.name);
+  }
+
+  private matchesLanguageFilters(languagePair: string): boolean {
+    const [source = '', target = ''] = languagePair.split('-');
+    const selectedSource = this.languagePairFilter.selectedSourceLanguage();
+    const selectedTarget = this.languagePairFilter.selectedTargetLanguage();
+
+    if (selectedSource && source !== selectedSource) return false;
+    if (selectedTarget && target !== selectedTarget) return false;
+    return true;
   }
 }

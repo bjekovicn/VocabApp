@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { StorageService } from '@core/services/abstractions/storage.service';
+import { LanguagePairFilterService } from '@core/services/language-pair-filter.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { Word } from '@core/models/word.model';
 import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
@@ -28,6 +29,7 @@ import { WordProgressBadgesComponent } from 'src/app/components/progress-badges/
 export class ViewWordListComponent {
   private readonly spacedRepetition = inject(SpacedRepetitionService);
   private readonly storage = inject(StorageService);
+  private readonly languagePairFilter = inject(LanguagePairFilterService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
   public readonly i18n = inject(I18nService);
@@ -38,9 +40,12 @@ export class ViewWordListComponent {
   public readonly selectedCategory = signal<WordCategory | 'all'>('all');
   public readonly materializingListId = signal<string | null>(null);
 
+  public readonly filteredLists = computed(() =>
+    this.vocabulary.sortedWordLists().filter((list) => this.matchesLanguageFilters(list.languagePair)),
+  );
   public readonly listOptions = computed(() => [
     { value: 'all', label: this.i18n.t('common.allLists') },
-    ...this.vocabulary.sortedWordLists().map((list) => ({
+    ...this.filteredLists().map((list) => ({
       value: list.id,
       label: `${list.name}${list.isDefault ? ` • ${this.i18n.t('wordLists.defaultBadge')}` : ''}`,
     })),
@@ -55,7 +60,8 @@ export class ViewWordListComponent {
   ]);
 
   public readonly filteredWords = computed(() => {
-    let words = this.vocabulary.words();
+    const availableListIds = new Set(this.filteredLists().map((list) => list.id));
+    let words = this.vocabulary.words().filter((word) => availableListIds.has(word.listId));
     const listId = this.selectedListId();
     const category = this.selectedCategory();
 
@@ -80,6 +86,15 @@ export class ViewWordListComponent {
   constructor() {
     effect(() => {
       this.selectedListId.set(this.listId() ?? 'all');
+    });
+
+    effect(() => {
+      const selectedListId = this.selectedListId();
+      const allowedListIds = new Set(this.filteredLists().map((list) => list.id));
+
+      if (selectedListId !== 'all' && !allowedListIds.has(selectedListId)) {
+        this.selectedListId.set('all');
+      }
     });
 
     effect(() => {
@@ -348,6 +363,16 @@ export class ViewWordListComponent {
       console.error('Error deleting word:', error);
       alert(this.i18n.t('words.deleteError'));
     }
+  }
+
+  private matchesLanguageFilters(languagePair: string): boolean {
+    const [source = '', target = ''] = languagePair.split('-');
+    const selectedSource = this.languagePairFilter.selectedSourceLanguage();
+    const selectedTarget = this.languagePairFilter.selectedTargetLanguage();
+
+    if (selectedSource && source !== selectedSource) return false;
+    if (selectedTarget && target !== selectedTarget) return false;
+    return true;
   }
 
   private async materializeSelectedList(listId: string): Promise<void> {

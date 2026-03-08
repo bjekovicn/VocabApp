@@ -1,0 +1,18 @@
+<div class="flex gap-2">
+  <div class="flex-1">
+    <app-custom-select
+      [placeholder]="i18n.t('listForm.sourceLanguage')"
+      [options]="sourceOptions()"
+      [value]="selectedSource()"
+      (valueChange)="handleSourceChange($event)"
+    />
+  </div>
+  <div class="flex-1">
+    <app-custom-select
+      [placeholder]="i18n.t('listForm.targetLanguage')"
+      [options]="targetOptions()"
+      [value]="selectedTarget()"
+      (valueChange)="handleTargetChange($event)"
+    />
+  </div>
+</div>

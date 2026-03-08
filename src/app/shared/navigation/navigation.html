@@ -51,7 +51,10 @@
       </div>
 
       <div class="hidden md:flex items-center gap-3">
-        <div class="w-52">
+        <div class="w-80">
+          <app-language-pair-filter />
+        </div>
+        <div class="w-44">
           <app-language-switcher />
         </div>
 
@@ -173,7 +176,8 @@
           {{ i18n.t('nav.import') }}
         </a>
 
-        <div class="px-3 pt-2">
+        <div class="px-3 pt-2 space-y-2">
+          <app-language-pair-filter />
           <app-language-switcher />
         </div>
 

@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { Word } from '@core/models/word.model';
@@ -6,6 +6,7 @@ import { PracticeMode } from '@core/models/practice-mode.model';
 import { PracticeResult, PracticeStats } from '@core/models/practice-session.model';
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
 import { StorageService } from '@core/services/abstractions/storage.service';
+import { LanguagePairFilterService } from '@core/services/language-pair-filter.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { I18nService } from '@core/services/i18n.service';
 import { SelectOption } from '@shared/select/custom-select.types';
@@ -20,6 +21,7 @@ export type WordFilter = 'all' | 'weakest' | 'forgotten' | 'new' | 'mastered';
 export class PracticeFacade {
   private readonly storage = inject(StorageService);
   private readonly spacedRepetition = inject(SpacedRepetitionService);
+  private readonly languagePairFilter = inject(LanguagePairFilterService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly i18n = inject(I18nService);
 
@@ -44,9 +46,13 @@ export class PracticeFacade {
     return selectedListId === 'all' ? null : this.vocabulary.getWordListById(selectedListId);
   });
 
+  public readonly filteredWordLists = computed(() =>
+    this.vocabulary.sortedWordLists().filter((list) => this.matchesLanguageFilters(list.languagePair)),
+  );
+
   public readonly listOptions = computed<SelectOption[]>(() => [
     { value: 'all', label: this.i18n.t('common.allLists') },
-    ...this.vocabulary.sortedWordLists().map((list) => {
+    ...this.filteredWordLists().map((list) => {
       const insight = this.vocabulary.getWordListInsight(list.id);
       const details =
         insight.wordCount === 0
@@ -85,9 +91,10 @@ export class PracticeFacade {
   public readonly listFilteredWords = computed(() => {
     const selectedListId = this.selectedListId();
     const selectedList = this.selectedList();
+    const filteredListIds = new Set(this.filteredWordLists().map((list) => list.id));
 
     if (selectedListId === 'all') {
-      return this.vocabulary.words();
+      return this.vocabulary.words().filter((word) => filteredListIds.has(word.listId));
     }
 
     if (selectedList?.isReadOnlyDefault) {
@@ -237,6 +244,17 @@ export class PracticeFacade {
         return this.i18n.t('practice.start.default');
     }
   });
+
+  public constructor() {
+    effect(() => {
+      const selectedListId = this.selectedListId();
+      const allowedListIds = new Set(this.filteredWordLists().map((list) => list.id));
+
+      if (selectedListId !== 'all' && !allowedListIds.has(selectedListId)) {
+        this.selectedListId.set('all');
+      }
+    });
+  }
 
   public setDirection(direction: string): void {
     this.selectedDirection.set(direction as PracticeDirection);
@@ -415,6 +433,16 @@ export class PracticeFacade {
       case 'quiz-target-source':
         return 'quizTargetToSource';
     }
+  }
+
+  private matchesLanguageFilters(languagePair: string): boolean {
+    const [source = '', target = ''] = languagePair.split('-');
+    const selectedSource = this.languagePairFilter.selectedSourceLanguage();
+    const selectedTarget = this.languagePairFilter.selectedTargetLanguage();
+
+    if (selectedSource && source !== selectedSource) return false;
+    if (selectedTarget && target !== selectedTarget) return false;
+    return true;
   }
 
   private getLastActivityLabel(lastActivityDays: number | null): string {

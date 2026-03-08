@@ -3,10 +3,11 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '@core/services/abstractions/auth.service';
 import { I18nService } from '@core/services/i18n.service';
 import { LanguageSwitcherComponent } from '@shared/language-switcher/language-switcher';
+import { LanguagePairFilterComponent } from '@shared/language-pair-filter/language-pair-filter';
 
 @Component({
   selector: 'app-navigation',
-  imports: [RouterModule, LanguageSwitcherComponent],
+  imports: [RouterModule, LanguageSwitcherComponent, LanguagePairFilterComponent],
   templateUrl: './navigation.html',
 })
 export class NavigationComponent {
