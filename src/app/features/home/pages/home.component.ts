@@ -97,13 +97,7 @@ export class HomePage {
   );
 
   public readonly dueToday = computed(() => {
-    return this.words().filter(
-      (w) =>
-        this.spacedRepetition.isDueForReview(w.flipCardSourceToTarget) ||
-        this.spacedRepetition.isDueForReview(w.flipCardTargetToSource) ||
-        this.spacedRepetition.isDueForReview(w.quizSourceToTarget) ||
-        this.spacedRepetition.isDueForReview(w.quizTargetToSource),
-    ).length;
+    return this.words().filter((word) => this.isForgottenWord(word)).length;
   });
 
   public readonly studiedPercent = computed(() =>
@@ -244,14 +238,7 @@ export class HomePage {
       category: cat.value,
       label: this.i18n.getCategoryLabel(cat.value),
       total: words.filter((w) => w.category === cat.value).length,
-      dueToday: words.filter(
-        (w) =>
-          w.category === cat.value &&
-          (this.spacedRepetition.isDueForReview(w.flipCardSourceToTarget) ||
-            this.spacedRepetition.isDueForReview(w.flipCardTargetToSource) ||
-            this.spacedRepetition.isDueForReview(w.quizSourceToTarget) ||
-            this.spacedRepetition.isDueForReview(w.quizTargetToSource)),
-      ).length,
+      dueToday: words.filter((w) => w.category === cat.value && this.isForgottenWord(w)).length,
       sharePercent: this.getPercent(
         words.filter((w) => w.category === cat.value).length,
         totalWords,
@@ -281,6 +268,19 @@ export class HomePage {
       word.quizSourceToTarget.easeFactor +
       word.quizTargetToSource.easeFactor;
     return sum / 4;
+  }
+
+  private isForgottenWord(word: Word): boolean {
+    const modes = [
+      word.flipCardSourceToTarget,
+      word.flipCardTargetToSource,
+      word.quizSourceToTarget,
+      word.quizTargetToSource,
+    ];
+
+    return modes.some(
+      (mode) => mode.repetitions > 0 && this.spacedRepetition.isDueForReview(mode),
+    );
   }
 
   private getPercent(value: number, total: number): number {
