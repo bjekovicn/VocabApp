@@ -104,6 +104,13 @@ export class PracticeFacade {
     return this.vocabulary.words().filter((word) => word.listId === selectedListId);
   });
 
+  /** Sum of wordCount from default lists in filtered set (for "all" when user has no materialized words yet). */
+  private readonly defaultListsWordCount = computed(() => {
+    return this.filteredWordLists()
+      .filter((list) => list.isReadOnlyDefault)
+      .reduce((sum, list) => sum + (list.wordCount ?? 0), 0);
+  });
+
   public readonly filterCounts = computed(() => {
     const selectedList = this.selectedList();
     if (selectedList?.isReadOnlyDefault) {
@@ -111,16 +118,18 @@ export class PracticeFacade {
     }
 
     const words = this.listFilteredWords();
+    const defaultCount = this.defaultListsWordCount();
     const progressKey = this.getProgressKey(this.selectedMode());
 
     return {
-      all: words.length,
-      new: words.filter(
-        (word) =>
-          word[progressKey].repetitions === 0 &&
-          word[progressKey].correctCount === 0 &&
-          word[progressKey].incorrectCount === 0,
-      ).length,
+      all: words.length + defaultCount,
+      new:
+        words.filter(
+          (word) =>
+            word[progressKey].repetitions === 0 &&
+            word[progressKey].correctCount === 0 &&
+            word[progressKey].incorrectCount === 0,
+        ).length + defaultCount,
       forgotten: words.filter(
         (word) =>
           word[progressKey].repetitions > 0 &&
@@ -195,9 +204,10 @@ export class PracticeFacade {
 
   public readonly availableWordCount = computed(() => {
     const selectedList = this.selectedList();
+    const selectedListId = this.selectedListId();
+
     if (selectedList?.isReadOnlyDefault) {
       const counts = this.filterCounts();
-
       switch (this.selectedFilter()) {
         case 'new':
           return counts.new;
@@ -213,7 +223,27 @@ export class PracticeFacade {
       }
     }
 
-    return this.availableWords().length;
+    const wordsCount = this.availableWords().length;
+    if (wordsCount > 0) return wordsCount;
+
+    if (selectedListId === 'all' && this.defaultListsWordCount() > 0) {
+      const counts = this.filterCounts();
+      switch (this.selectedFilter()) {
+        case 'new':
+          return counts.new;
+        case 'forgotten':
+          return counts.forgotten;
+        case 'weakest':
+          return counts.weakest;
+        case 'mastered':
+          return counts.mastered;
+        case 'all':
+        default:
+          return counts.all;
+      }
+    }
+
+    return 0;
   });
 
   public readonly stats = computed((): PracticeStats => {
@@ -285,12 +315,22 @@ export class PracticeFacade {
   public async startPractice(): Promise<void> {
     let words = this.availableWords();
     const selectedList = this.selectedList();
+    const selectedListId = this.selectedListId();
 
     if (selectedList?.isReadOnlyDefault) {
       const ownedListId = await this.storage.ensureListOwnership(selectedList.id);
       this.selectedListId.set(ownedListId);
       const ownedWords = await firstValueFrom(this.storage.getWordsByListId(ownedListId));
       words = this.applyFilterToWords(ownedWords, this.selectedFilter(), this.getProgressKey(this.selectedMode()));
+    } else if (selectedListId === 'all' && words.length === 0) {
+      const defaultLists = this.filteredWordLists().filter((list) => list.isReadOnlyDefault);
+      if (defaultLists.length > 0) {
+        const firstDefault = defaultLists[0];
+        const ownedListId = await this.storage.ensureListOwnership(firstDefault.id);
+        this.selectedListId.set(ownedListId);
+        const ownedWords = await firstValueFrom(this.storage.getWordsByListId(ownedListId));
+        words = this.applyFilterToWords(ownedWords, this.selectedFilter(), this.getProgressKey(this.selectedMode()));
+      }
     }
 
     if (words.length === 0) {

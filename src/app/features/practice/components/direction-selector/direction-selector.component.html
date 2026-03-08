@@ -10,7 +10,7 @@
           : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
       "
     >
-      <span class="text-xs font-bold tracking-wide">{{ i18n.t('practice.direction.sourceTarget') }}</span>
+      <span class="text-xs font-bold tracking-wide">{{ sourceLabel() }} → {{ targetLabel() }}</span>
     </button>
 
     <button
@@ -22,7 +22,7 @@
           : 'flex flex-col items-center justify-center gap-1 px-4 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all'
       "
     >
-      <span class="text-xs font-bold tracking-wide">{{ i18n.t('practice.direction.targetSource') }}</span>
+      <span class="text-xs font-bold tracking-wide">{{ targetLabel() }} → {{ sourceLabel() }}</span>
     </button>
   </div>
 </div>

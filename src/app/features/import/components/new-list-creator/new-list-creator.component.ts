@@ -21,6 +21,7 @@ export class NewListCreatorComponent {
   public readonly sourceLanguage = input<string>('');
   public readonly targetLanguage = input<string>('');
   public readonly languageOptions = input<LanguageOption[]>([]);
+  public readonly languagesDisabled = input<boolean>(false);
 
   public readonly nameChange = output<string>();
   public readonly sourceLanguageChange = output<string>();

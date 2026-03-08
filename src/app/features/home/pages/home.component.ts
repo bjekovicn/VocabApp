@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SpacedRepetitionService } from '@core/services/abstractions/spaced-repetition.service';
+import { LanguagePairFilterService } from '@core/services/language-pair-filter.service';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { WordCategory, WORD_CATEGORIES } from '@core/models/word-category.model';
 import { I18nService } from '@core/services/i18n.service';
@@ -37,11 +38,31 @@ interface DashboardHighlight {
 })
 export class HomePage {
   private readonly spacedRepetition = inject(SpacedRepetitionService);
+  private readonly languagePairFilter = inject(LanguagePairFilterService);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly router = inject(Router);
   public readonly i18n = inject(I18nService);
 
-  private readonly words = this.vocabulary.words;
+  private readonly filteredListIds = computed(() => {
+    const lists = this.vocabulary.wordLists();
+    const source = this.languagePairFilter.selectedSourceLanguage();
+    const target = this.languagePairFilter.selectedTargetLanguage();
+    return new Set(
+      lists
+        .filter((list) => {
+          const [src = '', tgt = ''] = list.languagePair.split('-');
+          if (source && src !== source) return false;
+          if (target && tgt !== target) return false;
+          return true;
+        })
+        .map((list) => list.id),
+    );
+  });
+
+  private readonly words = computed(() => {
+    const ids = this.filteredListIds();
+    return this.vocabulary.words().filter((w) => ids.has(w.listId));
+  });
 
   public readonly totalWords = computed(() => this.words().length);
   public readonly studiedWords = computed(

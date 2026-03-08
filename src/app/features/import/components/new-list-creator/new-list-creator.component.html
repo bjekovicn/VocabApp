@@ -18,6 +18,7 @@
         [required]="true"
         [value]="sourceLanguage()"
         (valueChange)="sourceLanguageChange.emit($event!)"
+        [disabled]="languagesDisabled()"
       />
     </div>
 
@@ -29,6 +30,7 @@
         [required]="true"
         [value]="targetLanguage()"
         (valueChange)="targetLanguageChange.emit($event!)"
+        [disabled]="languagesDisabled()"
       />
     </div>
   </div>

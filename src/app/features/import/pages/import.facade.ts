@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ImportService } from '@core/services/abstractions/import.service';
@@ -6,6 +6,7 @@ import { StorageService } from '@core/services/abstractions/storage.service';
 import { LanguagePair, SUPPORTED_LANGUAGES } from '@core/models/language.model';
 import { VocabularyFacade } from '@core/state/vocabulary.facade';
 import { I18nService } from '@core/services/i18n.service';
+import { LanguagePairFilterService } from '@core/services/language-pair-filter.service';
 import { buildImportPrompt } from './import.prompt.constant';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class ImportFacade {
   private readonly router = inject(Router);
   private readonly vocabulary = inject(VocabularyFacade);
   private readonly i18n = inject(I18nService);
+  private readonly languagePairFilter = inject(LanguagePairFilterService);
 
   public readonly importMode = signal<'paste' | 'file'>('paste');
   public readonly listMode = signal<'existing' | 'new'>('new');
@@ -100,6 +102,13 @@ export class ImportFacade {
     const { source, target } = this.languageLabels();
     return buildImportPrompt(this.i18n, source, target, this.topicDescription().trim());
   });
+
+  constructor() {
+    effect(() => {
+      this.newListSourceLang.set(this.languagePairFilter.selectedSourceLanguage() ?? '');
+      this.newListTargetLang.set(this.languagePairFilter.selectedTargetLanguage() ?? '');
+    }, { allowSignalWrites: true });
+  }
 
   public handleImportModeChange(mode: string): void {
     this.importMode.set(mode as 'paste' | 'file');

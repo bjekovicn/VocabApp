@@ -1,108 +1,127 @@
-<nav class="bg-primary-600 text-white shadow-lg">
+<nav class="bg-primary-600 text-white shadow">
   <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-between items-center h-16">
-      <!-- Logo -->
-      <div class="shrink-0">
-        <a routerLink="/" class="text-2xl font-bold"> VocabApp </a>
-      </div>
+    <div class="flex h-16 items-center justify-between">
+      <!-- LEFT -->
+      <div class="flex items-center gap-6">
+        <a routerLink="/" class="text-xl font-bold"> VocabApp </a>
 
-      <!-- Desktop Menu -->
-      <div class="hidden md:flex items-center space-x-4">
-        <a
-          routerLink="/"
-          routerLinkActive="bg-primary-700"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
-        >
-          {{ i18n.t('nav.home') }}
-        </a>
-
-        <a
-          routerLink="/word-lists"
-          routerLinkActive="bg-primary-700"
-          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
-        >
-          {{ i18n.t('nav.lists') }}
-        </a>
-
-        <a
-          routerLink="/words"
-          routerLinkActive="bg-primary-700"
-          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
-        >
-          {{ i18n.t('nav.words') }}
-        </a>
-
-        <a
-          routerLink="/practice"
-          routerLinkActive="bg-primary-700"
-          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
-        >
-          {{ i18n.t('nav.practice') }}
-        </a>
-
-        <a
-          routerLink="/import"
-          routerLinkActive="bg-primary-700"
-          class="px-3 py-2 rounded-md hover:bg-primary-700 transition"
-        >
-          {{ i18n.t('nav.import') }}
-        </a>
-      </div>
-
-      <div class="hidden md:flex items-center gap-3">
-        <div class="w-80">
-          <app-language-pair-filter />
-        </div>
-        <div class="w-44">
-          <app-language-switcher />
-        </div>
-
-        @if (isAnonymousUser()) {
-          <span class="text-sm text-primary-100">{{ i18n.t('nav.anonymousSession') }}</span>
-          <button
-            type="button"
-            (click)="handleGoogleSignIn()"
-            [disabled]="isAuthBusy()"
-            class="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+        <div class="hidden md:flex items-center gap-1">
+          <a
+            routerLink="/"
+            routerLinkActive="bg-primary-700"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="px-3 py-2 rounded-md hover:bg-primary-700"
           >
-            {{ i18n.t('nav.linkGoogle') }}
-          </button>
-        } @else {
-          <div class="flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-2">
+            {{ i18n.t('nav.home') }}
+          </a>
+
+          <a
+            routerLink="/word-lists"
+            routerLinkActive="bg-primary-700"
+            class="px-3 py-2 rounded-md hover:bg-primary-700"
+          >
+            {{ i18n.t('nav.lists') }}
+          </a>
+
+          <a
+            routerLink="/words"
+            routerLinkActive="bg-primary-700"
+            class="px-3 py-2 rounded-md hover:bg-primary-700"
+          >
+            {{ i18n.t('nav.words') }}
+          </a>
+
+          <a
+            routerLink="/practice"
+            routerLinkActive="bg-primary-700"
+            class="px-3 py-2 rounded-md hover:bg-primary-700"
+          >
+            {{ i18n.t('nav.practice') }}
+          </a>
+
+          <!-- Tools dropdown -->
+          <div class="relative group">
+            <button class="px-3 py-2 rounded-md hover:bg-primary-700">Tools</button>
+
+            <div
+              class="absolute left-0 mt-2 hidden group-hover:block w-40 rounded-md bg-white text-gray-800 shadow-lg"
+            >
+              <a routerLink="/import" class="block px-4 py-2 hover:bg-gray-100">
+                {{ i18n.t('nav.import') }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="hidden md:flex items-center gap-4">
+        <!-- Language pair -->
+        <div class="flex flex-col text-xs">
+          <span class="text-primary-200 mb-1">
+            {{ i18n.t('nav.languagePair') }}
+          </span>
+
+          <div class="w-60">
+            <app-language-pair-filter />
+          </div>
+        </div>
+
+        <!-- App language -->
+        <div class="flex flex-col text-xs">
+          <span class="text-primary-200 mb-1">
+            {{ i18n.t('nav.appLanguage') }}
+          </span>
+
+          <div class="w-36">
+            <app-language-switcher />
+          </div>
+        </div>
+
+        <!-- USER -->
+        <div class="relative group">
+          <button class="flex items-center justify-center h-9 w-9 rounded-full bg-primary-500">
             @if (userPhotoUrl()) {
               <img
-                [src]="userPhotoUrl()!"
-                [alt]="userLabel()"
-                class="h-9 w-9 rounded-full border border-white/20 object-cover"
+                [src]="userPhotoUrl()"
+                class="h-9 w-9 rounded-full object-cover"
                 referrerpolicy="no-referrer"
               />
             } @else {
-              <div
-                class="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-primary-500 text-sm font-semibold text-white"
-              >
-                {{ userInitials() }}
-              </div>
+              {{ userInitials() }}
             }
-
-            <div class="min-w-0">
-              <p class="max-w-56 truncate text-sm font-semibold text-white">{{ userLabel() }}</p>
-              <p class="max-w-56 truncate text-xs text-primary-100">{{ userSubLabel() }}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            (click)="handleSignOut()"
-            [disabled]="isAuthBusy()"
-            class="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {{ i18n.t('nav.signOut') }}
           </button>
-        }
+
+          <div
+            class="absolute right-0 mt-2 hidden group-hover:block w-56 rounded-xl bg-white text-gray-800 shadow-lg p-3"
+          >
+            @if (!isAnonymousUser()) {
+              <p class="font-semibold text-sm">{{ userLabel() }}</p>
+              <p class="text-xs text-gray-500 mb-3">{{ userSubLabel() }}</p>
+
+              <button
+                (click)="handleSignOut()"
+                class="w-full text-left text-sm hover:bg-gray-100 px-2 py-2 rounded"
+              >
+                {{ i18n.t('nav.signOut') }}
+              </button>
+            } @else {
+              <p class="text-sm mb-2">
+                {{ i18n.t('nav.anonymousSession') }}
+              </p>
+
+              <button
+                (click)="handleGoogleSignIn()"
+                class="w-full text-left text-sm hover:bg-gray-100 px-2 py-2 rounded"
+              >
+                {{ i18n.t('nav.linkGoogle') }}
+              </button>
+            }
+          </div>
+        </div>
       </div>
 
-      <!-- Mobile Menu Button -->
+      <!-- MOBILE BUTTON -->
       <button
         (click)="toggleMenu()"
         class="md:hidden p-2 rounded-md hover:bg-primary-700 focus:outline-none"
@@ -127,7 +146,7 @@
       </button>
     </div>
 
-    <!-- Mobile Menu -->
+    <!-- MOBILE MENU -->
     @if (isMenuOpen()) {
       <div class="md:hidden pb-4 space-y-2">
         <a
@@ -176,50 +195,67 @@
           {{ i18n.t('nav.import') }}
         </a>
 
-        <div class="px-3 pt-2 space-y-2">
-          <app-language-pair-filter />
-          <app-language-switcher />
+        <!-- filters -->
+        <div class="px-3 pt-2 space-y-4">
+          <div>
+            <p class="text-xs text-primary-200 mb-1">
+              {{ i18n.t('nav.languagePair') }}
+            </p>
+            <app-language-pair-filter />
+          </div>
+
+          <div>
+            <p class="text-xs text-primary-200 mb-1">
+              {{ i18n.t('nav.appLanguage') }}
+            </p>
+            <app-language-switcher />
+          </div>
         </div>
 
+        <!-- user -->
         <div class="border-t border-white/20 pt-3">
           @if (isAnonymousUser()) {
-            <p class="px-3 pb-2 text-sm text-primary-100">{{ i18n.t('nav.anonymousSession') }}</p>
+            <p class="px-3 pb-2 text-sm text-primary-100">
+              {{ i18n.t('nav.anonymousSession') }}
+            </p>
+
             <button
               type="button"
               (click)="handleGoogleSignIn()"
-              [disabled]="isAuthBusy()"
-              class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+              class="block w-full px-3 py-2 text-left text-sm hover:bg-primary-700"
             >
               {{ i18n.t('nav.linkGoogle') }}
             </button>
           } @else {
-            <div class="mx-3 mb-3 flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-3">
+            <div
+              class="mx-3 mb-3 flex items-center gap-3 rounded-xl border border-white/20 bg-primary-700/60 px-3 py-3"
+            >
               @if (userPhotoUrl()) {
                 <img
-                  [src]="userPhotoUrl()!"
-                  [alt]="userLabel()"
-                  class="h-10 w-10 rounded-full border border-white/20 object-cover"
+                  [src]="userPhotoUrl()"
+                  class="h-10 w-10 rounded-full object-cover"
                   referrerpolicy="no-referrer"
                 />
               } @else {
                 <div
-                  class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-primary-500 text-sm font-semibold text-white"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-sm font-semibold"
                 >
                   {{ userInitials() }}
                 </div>
               }
 
               <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-white">{{ userLabel() }}</p>
-                <p class="truncate text-xs text-primary-100">{{ userSubLabel() }}</p>
+                <p class="truncate text-sm font-semibold">{{ userLabel() }}</p>
+                <p class="truncate text-xs text-primary-100">
+                  {{ userSubLabel() }}
+                </p>
               </div>
             </div>
 
             <button
               type="button"
               (click)="handleSignOut()"
-              [disabled]="isAuthBusy()"
-              class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+              class="block w-full px-3 py-2 text-left text-sm hover:bg-primary-700"
             >
               {{ i18n.t('nav.signOut') }}
             </button>
@@ -228,12 +264,4 @@
       </div>
     }
   </div>
-
-  @if (authError()) {
-    <div class="border-t border-white/20 bg-primary-700/70 px-4 py-3 text-sm text-primary-50">
-      <div class="mx-auto max-w-7xl">
-        {{ authError() }}
-      </div>
-    </div>
-  }
 </nav>

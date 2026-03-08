@@ -62,7 +62,7 @@ const sr: TranslationDictionary = {
   'home.today': 'Danas',
   'home.collectionProgress': 'Napredak kolekcije',
   'home.collectionProgressHint': 'Brz pregled stanja fonda reči',
-  'home.totalWords': 'Ukupno reči',
+  'home.totalWords': 'Ukupno',
   'home.studied': 'Obrađeno',
   'home.mastered': 'Savladano',
   'home.dueToday': 'Za ponavljanje danas',
@@ -333,6 +333,8 @@ const sr: TranslationDictionary = {
   'errors.auth.default': 'Google prijava nije uspela. Pokušaj ponovo.',
   'errors.import.invalidJson': 'Nevažeći JSON format — proveri zagrade i zareze',
   'errors.import.invalidFile': 'Nevažeći import fajl:',
+  'nav.languagePair': 'Izvorni → Ciljni',
+  'nav.appLanguage': 'Jezik aplikacije',
 };
 
 const de: TranslationDictionary = {
@@ -396,7 +398,7 @@ const de: TranslationDictionary = {
   'home.today': 'Heute',
   'home.collectionProgress': 'Fortschritt der Sammlung',
   'home.collectionProgressHint': 'Kurzübersicht über Ihren Wortschatz-Status',
-  'home.totalWords': 'Wörter insgesamt',
+  'home.totalWords': 'Gesamt',
   'home.studied': 'Gelernt',
   'home.mastered': 'Gelernt',
   'home.dueToday': 'Heute fällig',
@@ -582,8 +584,7 @@ const de: TranslationDictionary = {
   'listForm.sourceLanguage': 'Quellsprache',
   'listForm.targetLanguage': 'Zielsprache',
   'listForm.selectLanguage': 'Sprache wählen',
-  'listForm.defaultPairLocked':
-    'Sprachen sind für Listen aus dem Standardinhalt gesperrt.',
+  'listForm.defaultPairLocked': 'Sprachen sind für Listen aus dem Standardinhalt gesperrt.',
   'listForm.languageDistinct': 'Quell- und Zielsprache müssen unterschiedlich sein',
   'listForm.create': 'Liste erstellen',
   'listForm.saveError': 'Fehler beim Speichern der Liste',
@@ -670,6 +671,8 @@ const de: TranslationDictionary = {
   'errors.auth.default': 'Google Login fehlgeschlagen. Bitte erneut versuchen.',
   'errors.import.invalidJson': 'Ungültiges JSON-Format — Klammern und Kommas prüfen',
   'errors.import.invalidFile': 'Ungültige Import-Datei:',
+  'nav.languagePair': 'Quelle → Ziel',
+  'nav.appLanguage': 'App-Sprache',
 };
 
 const en: TranslationDictionary = {
@@ -731,7 +734,7 @@ const en: TranslationDictionary = {
   'home.today': 'Today',
   'home.collectionProgress': 'Collection progress',
   'home.collectionProgressHint': 'Quick overview of your vocabulary status',
-  'home.totalWords': 'Total words',
+  'home.totalWords': 'Total',
   'home.studied': 'Studied',
   'home.mastered': 'Mastered',
   'home.dueToday': 'Due today',
@@ -916,8 +919,7 @@ const en: TranslationDictionary = {
   'listForm.sourceLanguage': 'Source language',
   'listForm.targetLanguage': 'Target language',
   'listForm.selectLanguage': 'Choose language',
-  'listForm.defaultPairLocked':
-    'Languages are locked for lists that come from default content.',
+  'listForm.defaultPairLocked': 'Languages are locked for lists that come from default content.',
   'listForm.languageDistinct': 'Source and target language must be different',
   'listForm.create': 'Create list',
   'listForm.saveError': 'Failed to save list',
@@ -1001,6 +1003,8 @@ const en: TranslationDictionary = {
   'errors.auth.default': 'Google sign-in failed. Try again.',
   'errors.import.invalidJson': 'Invalid JSON format — check braces and commas',
   'errors.import.invalidFile': 'Invalid import file:',
+  'nav.languagePair': 'Source → Target',
+  'nav.appLanguage': 'App language',
 };
 
 const es: TranslationDictionary = {
@@ -1064,7 +1068,7 @@ const es: TranslationDictionary = {
   'home.today': 'Hoy',
   'home.collectionProgress': 'Progreso de la colección',
   'home.collectionProgressHint': 'Resumen rápido del estado de tu vocabulario',
-  'home.totalWords': 'Total de palabras',
+  'home.totalWords': 'Total',
   'home.studied': 'Estudiado',
   'home.mastered': 'Dominado',
   'home.dueToday': 'Pendiente para hoy',
@@ -1346,6 +1350,8 @@ const es: TranslationDictionary = {
   'errors.auth.default': 'Error al iniciar sesión con Google. Inténtalo de nuevo.',
   'errors.import.invalidJson': 'Formato JSON no válido — comprueba llaves y comas',
   'errors.import.invalidFile': 'Archivo de importación no válido:',
+  'nav.languagePair': 'Origen → Destino',
+  'nav.appLanguage': 'Idioma de la aplicación',
 };
 
 const it: TranslationDictionary = {
@@ -1409,7 +1415,7 @@ const it: TranslationDictionary = {
   'home.today': 'Oggi',
   'home.collectionProgress': 'Progresso collezione',
   'home.collectionProgressHint': 'Panoramica rapida dello stato del tuo vocabolario',
-  'home.totalWords': 'Parole totali',
+  'home.totalWords': 'Totale',
   'home.studied': 'Studiate',
   'home.mastered': 'Imparate',
   'home.dueToday': 'Da ripassare oggi',
@@ -1573,7 +1579,8 @@ const it: TranslationDictionary = {
   'wordLists.masteredCount': '{{count}} imparate',
   'wordLists.masteredPercent': '{{percent}}% imparate',
   'wordLists.defaultBadge': 'Predefinita',
-  'wordLists.defaultHint': 'Una copia personale viene creata quando apri questa lista per la prima volta.',
+  'wordLists.defaultHint':
+    'Una copia personale viene creata quando apri questa lista per la prima volta.',
   'wordLists.lastActivity.never': 'Mai esercitata',
   'wordLists.lastActivity.today': 'Attiva oggi',
   'wordLists.lastActivity.yesterday': 'Attiva ieri',
@@ -1689,6 +1696,8 @@ const it: TranslationDictionary = {
   'errors.auth.default': 'Accesso con Google fallito. Riprova.',
   'errors.import.invalidJson': 'Formato JSON non valido — controlla parentesi e virgole',
   'errors.import.invalidFile': 'File di importazione non valido:',
+  'nav.languagePair': 'Origine → Destinazione',
+  'nav.appLanguage': "Lingua dell'app",
 };
 
 const fr: TranslationDictionary = {
@@ -1752,7 +1761,7 @@ const fr: TranslationDictionary = {
   'home.today': "Aujourd'hui",
   'home.collectionProgress': 'Progression de la collection',
   'home.collectionProgressHint': "Aperçu rapide de l'état de votre vocabulaire",
-  'home.totalWords': 'Total de mots',
+  'home.totalWords': 'Total',
   'home.studied': 'Étudiés',
   'home.mastered': 'Maîtrisés',
   'home.dueToday': "À réviser aujourd'hui",
@@ -1916,7 +1925,8 @@ const fr: TranslationDictionary = {
   'wordLists.masteredCount': '{{count}} maîtrisés',
   'wordLists.masteredPercent': '{{percent}}% maîtrisés',
   'wordLists.defaultBadge': 'Par défaut',
-  'wordLists.defaultHint': 'Une copie personnelle est créée lors de la première ouverture de cette liste.',
+  'wordLists.defaultHint':
+    'Une copie personnelle est créée lors de la première ouverture de cette liste.',
   'wordLists.lastActivity.never': 'Jamais pratiqué',
   'wordLists.lastActivity.today': "Active aujourd'hui",
   'wordLists.lastActivity.yesterday': 'Active hier',
@@ -2029,6 +2039,8 @@ const fr: TranslationDictionary = {
   'errors.auth.default': 'Échec de la connexion Google. Veuillez réessayer.',
   'errors.import.invalidJson': 'Format JSON non valide — vérifiez les accolades et les virgules',
   'errors.import.invalidFile': "Fichier d'importation non valide :",
+  'nav.languagePair': 'Source → Cible',
+  'nav.appLanguage': "Langue de l'application",
 };
 
 export const TRANSLATIONS: Record<UiLocale, TranslationDictionary> = {

@@ -3,7 +3,9 @@
     <!-- Setup State -->
     @if (state() === 'setup') {
       <div class="mb-10 text-center sm:text-left">
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-3">{{ i18n.t('practice.title') }}</h1>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-3">
+          {{ i18n.t('practice.title') }}
+        </h1>
         <p class="text-gray-600 text-lg sm:text-base">{{ i18n.t('practice.subtitle') }}</p>
       </div>
 
@@ -14,7 +16,7 @@
       }
 
       <app-custom-card class="shadow-lg">
-        <div class="p-6 md:p-8 space-y-8">
+        <div class="flex flex-col p-6 md:p-8 space-y-2">
           <!-- Direction Selector -->
           <app-direction-selector
             [direction]="selectedDirection()"
@@ -38,6 +40,7 @@
             <app-custom-select
               [label]="i18n.t('practice.list')"
               [placeholder]="i18n.t('common.allLists')"
+              [showPlaceholderOption]="false"
               [options]="listOptions()"
               [(value)]="selectedListId"
             />
@@ -110,12 +113,16 @@
     <!-- Results State -->
     @if (state() === 'results') {
       <div class="mb-8 text-center sm:text-left">
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">{{ i18n.t('practice.resultsTitle') }}</h1>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">
+          {{ i18n.t('practice.resultsTitle') }}
+        </h1>
         <p class="text-gray-600 text-lg sm:text-base">{{ i18n.t('practice.resultsSubtitle') }}</p>
       </div>
 
       @if (errorMessage()) {
-        <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <div
+          class="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+        >
           {{ errorMessage() }}
         </div>
       }
@@ -125,21 +132,27 @@
         <app-custom-card class="shadow-md">
           <div class="text-center py-6">
             <div class="text-4xl font-bold text-gray-900">{{ stats().totalWords }}</div>
-            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">{{ i18n.t('practice.stats.total') }}</div>
+            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">
+              {{ i18n.t('practice.stats.total') }}
+            </div>
           </div>
         </app-custom-card>
 
         <app-custom-card class="shadow-md">
           <div class="text-center py-6">
             <div class="text-4xl font-bold text-green-600">{{ stats().correctCount }}</div>
-            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">{{ i18n.t('practice.stats.correct') }}</div>
+            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">
+              {{ i18n.t('practice.stats.correct') }}
+            </div>
           </div>
         </app-custom-card>
 
         <app-custom-card class="shadow-md">
           <div class="text-center py-6">
             <div class="text-4xl font-bold text-primary-600">{{ stats().accuracy }}%</div>
-            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">{{ i18n.t('practice.stats.accuracy') }}</div>
+            <div class="text-sm text-gray-500 mt-2 uppercase tracking-wide">
+              {{ i18n.t('practice.stats.accuracy') }}
+            </div>
           </div>
         </app-custom-card>
       </div>
